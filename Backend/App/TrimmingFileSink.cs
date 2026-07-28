@@ -33,7 +33,11 @@ namespace VPULSE.Backend.App
             {
                 using var sw = new StringWriter();
                 _formatter.Format(logEvent, sw);
-                var text = GeneralUtils.RedactUsername(sw.ToString());
+
+                // Redact here rather than at each call site: the log file is what users attach to
+                // bug reports, and a token only has to survive one un-redacted Log call to end up
+                // in it. This covers exception messages and third-party events too.
+                var text = GeneralUtils.RedactUsername(GeneralUtils.RedactSensitiveInfo(sw.ToString()));
 
                 _writer.Write(text);
                 _writer.Flush();

@@ -18,6 +18,7 @@ namespace VPULSE.Backend.Platform
         public static INativeDialogs Dialogs { get; private set; } = null!;
         public static IStartupManager Startup { get; private set; } = null!;
         public static ISoundPlayer Sound { get; private set; } = null!;
+        public static ISecretStore Secrets { get; private set; } = null!;
 
         public static void Initialize()
         {
@@ -28,6 +29,7 @@ namespace VPULSE.Backend.Platform
             Dialogs = new Windows.WindowsNativeDialogs();
             Startup = new Windows.WindowsStartupManager();
             Sound = new Windows.WindowsSoundPlayer();
+            Secrets = new Windows.WindowsSecretStore();
 #else
             Tray = new Linux.LinuxTrayIcon();
             Audio = new Linux.LinuxAudioDeviceService();
@@ -35,6 +37,7 @@ namespace VPULSE.Backend.Platform
             Dialogs = new Linux.LinuxNativeDialogs();
             Startup = new Linux.LinuxStartupManager();
             Sound = new Linux.LinuxSoundPlayer();
+            Secrets = new Linux.LinuxSecretStore();
 #endif
         }
     }

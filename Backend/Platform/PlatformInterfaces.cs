@@ -58,4 +58,21 @@ namespace VPULSE.Backend.Platform
     {
         void Play(byte[] wavData, float volume);
     }
+
+    /// <summary>
+    /// Encrypts small secrets (OAuth tokens) at rest, bound to the signed-in OS user.
+    /// Protects against another user on the machine and against the file being copied off it;
+    /// it does not protect against code already running as this user.
+    /// </summary>
+    internal interface ISecretStore
+    {
+        /// <summary>False when the platform has no key store and only file permissions apply.</summary>
+        bool IsOsBacked { get; }
+
+        /// <summary>Returns null when protection is unavailable, so callers can refuse to persist.</summary>
+        byte[]? Protect(byte[] plaintext);
+
+        /// <summary>Returns null for a blob written by another user, another machine, or a corrupt file.</summary>
+        byte[]? Unprotect(byte[] ciphertext);
+    }
 }

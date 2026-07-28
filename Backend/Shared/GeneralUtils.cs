@@ -300,15 +300,32 @@ namespace VPULSE.Backend.Shared
         private static readonly string[] SensitiveProperties =
         [
             "accesstoken",
+            "access_token",
             "refreshtoken",
+            "refresh_token",
+            "id_token",
             "jwt",
-            "state"
+            "state",
+            "code_verifier",
+            "codeverifier",
+            "client_secret",
+            "authorization"
         ];
+
+        // The property pass above only matches JSON ("key":"value"). An OAuth callback or token
+        // request that reaches a log line carries its secrets as query parameters instead, so they
+        // need their own pass. "code" is only listed here, not above, because a bare "code" JSON
+        // property is usually an error code and redacting those would hide real diagnostics.
+        private static readonly Regex SensitiveUrlParamRegex = new(
+            @"([?&](?:code|state|access_token|refresh_token|id_token|code_verifier|client_secret)=)[^&\s""'<>]+",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         public static string RedactSensitiveInfo(string message)
         {
             if (string.IsNullOrEmpty(message))
                 return message;
+
+            message = SensitiveUrlParamRegex.Replace(message, "$1-REDACTED-");
 
             foreach (var prop in SensitiveProperties)
             {
