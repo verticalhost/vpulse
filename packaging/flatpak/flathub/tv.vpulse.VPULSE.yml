@@ -63,7 +63,7 @@ modules:
       - install -Dm644 icon-256.png /app/share/icons/hicolor/256x256/apps/tv.vpulse.VPULSE.png
     sources:
       - type: archive
-        url: https://github.com/verticalhost/vpulse-releases/releases/download/v1.7.0/vpulse-1.7.0-x86_64.tar.gz
+        url: https://github.com/verticalhost/vpulse/releases/download/v1.7.0/vpulse-1.7.0-x86_64.tar.gz
         # Placeholder until the first release build; the checker maintains it after that.
         sha256: 0000000000000000000000000000000000000000000000000000000000000000
         # The tarball is the staged tree itself (payload/, vpulse.sh, .desktop, .metainfo.xml, icon).
@@ -71,6 +71,6 @@ modules:
         # external-data-checker watches our latest non-prerelease GitHub release and PRs url + sha256 bumps.
         x-checker-data:
           type: json
-          url: https://api.github.com/repos/verticalhost/vpulse-releases/releases/latest
+          url: https://api.github.com/repos/verticalhost/vpulse/releases/latest
           version-query: .tag_name | sub("^v"; "")
           url-query: .assets[] | select(.name | endswith("-x86_64.tar.gz")) | .browser_download_url

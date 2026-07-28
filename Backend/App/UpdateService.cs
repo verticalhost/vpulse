@@ -13,9 +13,7 @@ namespace VPULSE.Backend.App
     {
         public static UpdateInfo? LatestUpdateInfo { get; private set; } = null;
 
-        // Releases live in their own public repo so the app can fetch updates without shipping a
-        // token: the source repo is private, and GitHub answers 404 there for unauthenticated calls.
-        public const string ReleasesRepoUrl = "https://github.com/verticalhost/vpulse-releases";
+        public const string ReleasesRepoUrl = "https://github.com/verticalhost/vpulse";
 
         public static GithubSource Source = new(ReleasesRepoUrl, null, false);
         public static GithubSource BetaSource = new(ReleasesRepoUrl, null, true);
@@ -325,7 +323,7 @@ namespace VPULSE.Backend.App
                 httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("VPULSE", currentVersion.ToString()));
 
                 // Fetch releases from GitHub API
-                var response = await httpClient.GetAsync("https://api.github.com/repos/verticalhost/vpulse-releases/releases");
+                var response = await httpClient.GetAsync("https://api.github.com/repos/verticalhost/vpulse/releases");
                 response.EnsureSuccessStatusCode();
 
                 var content = await response.Content.ReadAsStringAsync();

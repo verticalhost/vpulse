@@ -79,7 +79,9 @@ VPULSE is **GPLv2 licensed**.
 | Reviewers | @verticalhost |
 | Approvers | @verticalhost |
 
-See our [Privacy Policy](https://segra.tv/privacy).
+VPULSE uploads clips and signs in through Segra.tv, so that data is covered by
+[Segra's Privacy Policy](https://segra.tv/privacy). Recording and highlight generation happen
+locally and send nothing.
 
 ## Star History
 

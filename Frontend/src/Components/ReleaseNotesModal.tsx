@@ -106,9 +106,8 @@ interface ReleaseNotesModalProps {
   filterVersion: string | null;
 }
 
-// Release notes and their "view on GitHub" link come from the public releases repo; the source
-// repo is private, so linking there would send users to a 404.
-const GITHUB_REPO_URL = 'https://github.com/verticalhost/vpulse-releases';
+// Release notes come from the public source repo, which also hosts the releases.
+const GITHUB_REPO_URL = 'https://github.com/verticalhost/vpulse';
 
 function linkifyIssueReferences(text: string): string {
   return text.replace(/(?<!\[)#(\d+)/g, `[#$1](${GITHUB_REPO_URL}/issues/$1)`);
