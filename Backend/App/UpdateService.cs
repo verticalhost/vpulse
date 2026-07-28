@@ -12,8 +12,13 @@ namespace VPULSE.Backend.App
     public static class UpdateService
     {
         public static UpdateInfo? LatestUpdateInfo { get; private set; } = null;
-        public static GithubSource Source = new("https://github.com/verticalhost/vpulse", null, false);
-        public static GithubSource BetaSource = new("https://github.com/verticalhost/vpulse", null, true);
+
+        // Releases live in their own public repo so the app can fetch updates without shipping a
+        // token: the source repo is private, and GitHub answers 404 there for unauthenticated calls.
+        public const string ReleasesRepoUrl = "https://github.com/verticalhost/vpulse-releases";
+
+        public static GithubSource Source = new(ReleasesRepoUrl, null, false);
+        public static GithubSource BetaSource = new(ReleasesRepoUrl, null, true);
         public static UpdateManager UpdateManager { get; private set; } = new(Source);
 
         // Falls back to the assembly version when Velopack has no metadata (dev builds, Flatpak).
@@ -320,7 +325,7 @@ namespace VPULSE.Backend.App
                 httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("VPULSE", currentVersion.ToString()));
 
                 // Fetch releases from GitHub API
-                var response = await httpClient.GetAsync($"https://api.github.com/repos/verticalhost/vpulse/releases");
+                var response = await httpClient.GetAsync("https://api.github.com/repos/verticalhost/vpulse-releases/releases");
                 response.EnsureSuccessStatusCode();
 
                 var content = await response.Content.ReadAsStringAsync();
