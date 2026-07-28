@@ -94,6 +94,21 @@ namespace VPULSE.Backend.App
                         case "CancelDiscordLogin":
                             DiscordLoginService.Cancel();
                             break;
+                        case "StartOAuthLogin":
+                            if (ResolveProvider(root) is { } loginProvider)
+                                _ = Task.Run(() => OAuthLoginService.Begin(loginProvider));
+                            break;
+                        case "CancelOAuthLogin":
+                            if (ResolveProvider(root) is { } cancelProvider)
+                                OAuthLoginService.Cancel(cancelProvider);
+                            break;
+                        case "SignOutProvider":
+                            if (ResolveProvider(root) is { } signOutProvider)
+                                _ = Task.Run(() => AuthStateService.SignOutAsync(signOutProvider));
+                            break;
+                        case "RefreshAuthState":
+                            _ = Task.Run(AuthStateService.RefreshAllAsync);
+                            break;
                         case "CancelClip":
                             if (root.TryGetProperty("Parameters", out var cancelClipParams) &&
                                 cancelClipParams.TryGetProperty("id", out var clipId))
@@ -234,6 +249,10 @@ namespace VPULSE.Backend.App
 
                             await UpdateService.SendCurrentUpdateProgressToFrontend();
                             _ = Task.Run(() => UpdateService.GetReleaseNotes());
+
+                            // The renderer stores no session of its own, so it needs this pushed to
+                            // it on every connection to know who is signed in.
+                            await AuthStateService.SendToFrontendAsync();
                             break;
                         case "SetVideoLocation":
                             await SetVideoLocationAsync();
@@ -606,6 +625,19 @@ namespace VPULSE.Backend.App
                 Log.Error(ex, "Error sending game list to frontend");
                 await SendFrontendMessage("GameList", new List<object>());
             }
+        }
+
+        private static OAuthProvider? ResolveProvider(JsonElement root)
+        {
+            if (root.TryGetProperty("Parameters", out var parameters)
+                && parameters.TryGetProperty("provider", out var name)
+                && OAuthProviders.ByName(name.GetString()) is { } provider)
+            {
+                return provider;
+            }
+
+            Log.Warning("Received an OAuth message naming no known provider");
+            return null;
         }
 
         private static async Task HandleCreateAiClip(JsonElement message)

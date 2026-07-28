@@ -3,6 +3,7 @@ using Velopack;
 using Photino.NET;
 using System.IO.Pipes;
 using VPULSE.Backend.Api;
+using VPULSE.Backend.Auth;
 using Photino.NET.Server;
 using VPULSE.Backend.Core;
 using System.Diagnostics;
@@ -288,6 +289,11 @@ namespace VPULSE.Backend.App
                 {
                     Directory.CreateDirectory(Settings.Instance.ContentFolder);
                 }
+
+                // Load the last known VPZ+ status before anything can gate on it, so a launch with
+                // no network does not briefly present a paying member as free.
+                EntitlementService.RestoreFromCache();
+                Task.Run(AuthStateService.RefreshAllAsync);
 
                 // Run data migrations
                 Task.Run(MigrationService.RunMigrations);

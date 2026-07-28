@@ -13,7 +13,8 @@ namespace VPULSE.Backend.Api
         // Own port, for the same reason as MessageService.WebSocketPort: sharing Segra's 2222 means
         // whichever app starts first wins, and the loser's frontend asks the wrong server for its
         // files and gets a 404 (video and thumbnails render black).
-        internal const string Prefix = "http://localhost:2322/";
+        internal const int Port = 2322;
+        internal static readonly string Prefix = $"http://localhost:{Port}/";
 
         private static readonly HttpListener _httpListener = new();
         private static CancellationTokenSource? _cancellationTokenSource;
@@ -21,6 +22,13 @@ namespace VPULSE.Backend.Api
         public static void StartServer(string prefix)
         {
             _httpListener.Prefixes.Add(prefix);
+
+            // HttpListener routes on the Host header, so a "localhost" prefix answers 400 to a
+            // request addressed to 127.0.0.1. OAuth redirect URIs use the literal address
+            // (RFC 8252 8.3), so that form has to be bound too or every sign-in silently fails
+            // at the callback. Neither prefix needs elevation.
+            _httpListener.Prefixes.Add($"http://127.0.0.1:{Port}/");
+
             _httpListener.Start();
             Log.Information("Server started at {Prefix}", prefix);
 
@@ -95,6 +103,20 @@ namespace VPULSE.Backend.Api
                 else if (rawUrl.StartsWith("/api/content"))
                 {
                     await HandleContentRequest(context);
+                }
+                else if (OAuthProviders.ByCallbackPath(path) is { } provider)
+                {
+                    // The listener binds to localhost, so this should hold already; assert it anyway
+                    // because everything downstream trusts that the code came from a local browser.
+                    if (context.Request.RemoteEndPoint?.Address is not { } address || !IPAddress.IsLoopback(address))
+                    {
+                        Log.Warning("Rejected a non-loopback request to an OAuth callback");
+                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        response.Close();
+                        return;
+                    }
+
+                    await OAuthLoginService.HandleCallbackAsync(provider, context);
                 }
                 else if (DiscordLoginService.IsCallbackPath(path))
                 {
