@@ -77,6 +77,16 @@ namespace VPULSE.Backend.App
             PlatformServices.Initialize();
 
 #if WINDOWS
+            // Photino defaults every app to %LOCALAPPDATA%\Photino\EBWebView, so an upstream Segra
+            // install on the same machine shares this WebView2 profile and serves VPULSE its cached
+            // frontend. Give VPULSE its own folder before the window (and its WebView2) is created.
+            Environment.SetEnvironmentVariable(
+                "WEBVIEW2_USER_DATA_FOLDER",
+                Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "VPULSE",
+                    "EBWebView"));
+
             // Set process DPI aware to ensure we capture at physical resolution
             SetProcessDPIAware();
 #else
@@ -274,7 +284,8 @@ namespace VPULSE.Backend.App
 
                 // Start WebSocket and Load Settings
                 Task.Run(MessageService.StartWebsocket);
-                Task.Run(MessageService.StartLegacyPortFallback);
+                // No legacy-port fallback: it exists to migrate old Segra frontends off port 5000,
+                // which VPULSE never shipped, and binding it collides with a local Segra install.
                 Task.Run(StorageService.EnsureStorageBelowLimit);
 
                 // Check for updates

@@ -2608,6 +2608,10 @@ namespace VPULSE.Backend.Recorder
             _bufferOutput = null;
         }
 
+        // Chunk size for the recorder download. Kept well above the default 8 KB so a ~150 MB
+        // zip isn't throttled by per-chunk async I/O and on-access antivirus scanning.
+        private const int DownloadBufferSize = 256 * 1024;
+
         // ?isLinux=true selects the Linux recorder bundles; the default serves the Windows OBS zips.
 #if WINDOWS
         private const string ObsVersionsUrl = "https://segra.tv/api/obs/versions";
@@ -2748,8 +2752,8 @@ namespace VPULSE.Backend.Recorder
                 resp.EnsureSuccessStatusCode();
                 long totalBytes = resp.Content.Headers.ContentLength ?? -1L;
                 using var contentStream = await resp.Content.ReadAsStreamAsync();
-                using var fileStream = new FileStream(archivePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
-                var buffer = new byte[8192];
+                using var fileStream = new FileStream(archivePath, FileMode.Create, FileAccess.Write, FileShare.None, DownloadBufferSize, true);
+                var buffer = new byte[DownloadBufferSize];
                 long totalRead = 0; int bytesRead, lastProgress = -1;
                 while ((bytesRead = await contentStream.ReadAsync(buffer)) > 0)
                 {
@@ -2962,9 +2966,11 @@ namespace VPULSE.Backend.Recorder
 
                         var totalBytes = downloadResponse.Content.Headers.ContentLength ?? -1L;
                         using var contentStream = await downloadResponse.Content.ReadAsStreamAsync();
-                        using var fileStream = new FileStream(zipPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+                        // 256 KB buffers: the recorder zip is ~150 MB, and 8 KB chunks made the
+                        // download two orders of magnitude slower than the link allows.
+                        using var fileStream = new FileStream(zipPath, FileMode.Create, FileAccess.Write, FileShare.None, DownloadBufferSize, true);
 
-                        var buffer = new byte[8192];
+                        var buffer = new byte[DownloadBufferSize];
                         long totalBytesRead = 0;
                         int bytesRead;
                         int lastReportedProgress = -1;

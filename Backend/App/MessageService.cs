@@ -19,6 +19,10 @@ namespace VPULSE.Backend.App
 {
     public static class MessageService
     {
+        // VPULSE uses its own port so it can run side by side with an upstream Segra install
+        // instead of failing to bind and leaving the frontend without a backend connection.
+        public const int WebSocketPort = 44130;
+
         private static WebSocket? activeWebSocket;
         private static readonly SemaphoreSlim sendLock = new SemaphoreSlim(1, 1);
         private static readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions
@@ -411,9 +415,9 @@ namespace VPULSE.Backend.App
         public static async Task StartWebsocket()
         {
             HttpListener listener = new HttpListener();
-            listener.Prefixes.Add("http://localhost:44030/");
+            listener.Prefixes.Add($"http://localhost:{WebSocketPort}/");
             listener.Start();
-            Log.Information("WebSocket server started at ws://localhost:44030/");
+            Log.Information($"WebSocket server started at ws://localhost:{WebSocketPort}/");
 
             try
             {
