@@ -181,7 +181,7 @@ function TopInfoBar({ video }: { video: Content }) {
 
 // Fetches a video thumbnail from the backend for a specific timestamp
 const fetchThumbnailAtTime = async (videoPath: string, timeInSeconds: number): Promise<string> => {
-  const url = `http://localhost:2222/api/thumbnail?input=${encodeURIComponent(videoPath)}&time=${timeInSeconds}`;
+  const url = `http://localhost:2322/api/thumbnail?input=${encodeURIComponent(videoPath)}&time=${timeInSeconds}`;
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -1471,7 +1471,7 @@ export default function VideoComponent({ video }: { video: Content }) {
 
   // Get video source URL - use the filePath from metadata
   const getVideoPath = (): string => {
-    return `http://localhost:2222/api/content?input=${encodeURIComponent(video.filePath)}&type=${video.type.toLowerCase()}`;
+    return `http://localhost:2322/api/content?input=${encodeURIComponent(video.filePath)}&type=${video.type.toLowerCase()}`;
   };
 
   // Get audio waveform URL - waveforms are stored in AppData
@@ -1486,7 +1486,7 @@ export default function VideoComponent({ video }: { video: Content }) {
             ? 'Clips'
             : 'Highlights';
     const waveformPath = `${appState.cacheFolder}/waveforms/${folderName}/${video.fileName}.peaks.json`;
-    return `http://localhost:2222/api/content?input=${encodeURIComponent(waveformPath)}&type=${video.type.toLowerCase()}`;
+    return `http://localhost:2322/api/content?input=${encodeURIComponent(waveformPath)}&type=${video.type.toLowerCase()}`;
   };
 
   // Handle video upload operation

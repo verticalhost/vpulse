@@ -10,7 +10,10 @@ namespace VPULSE.Backend.Api
 {
     internal class ContentServer
     {
-        internal const string Prefix = "http://localhost:2222/";
+        // Own port, for the same reason as MessageService.WebSocketPort: sharing Segra's 2222 means
+        // whichever app starts first wins, and the loser's frontend asks the wrong server for its
+        // files and gets a 404 (video and thumbnails render black).
+        internal const string Prefix = "http://localhost:2322/";
 
         private static readonly HttpListener _httpListener = new();
         private static CancellationTokenSource? _cancellationTokenSource;

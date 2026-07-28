@@ -255,7 +255,17 @@ namespace VPULSE.Backend.App
 
                 Task.Run(() =>
                 {
-                    ContentServer.StartServer(ContentServer.Prefix);
+                    // A failure here is silent otherwise: the task's exception is never observed, and
+                    // the frontend goes on requesting media from a server that isn't ours, which
+                    // renders as black video and missing thumbnails rather than an error.
+                    try
+                    {
+                        ContentServer.StartServer(ContentServer.Prefix);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Content server could not start on {Prefix}; media playback will not work", ContentServer.Prefix);
+                    }
                 });
 
                 IsFirstRun = !SettingsService.LoadSettings();

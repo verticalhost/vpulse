@@ -209,7 +209,7 @@ export default function ContentCard({
             ? 'Clips'
             : 'Highlights';
     const thumbnailPath = `${cacheFolder}/thumbnails/${folderName}/${content?.fileName}.jpeg`;
-    return `http://localhost:2222/api/thumbnail?input=${encodeURIComponent(thumbnailPath)}`;
+    return `http://localhost:2322/api/thumbnail?input=${encodeURIComponent(thumbnailPath)}`;
   };
 
   const formatDuration = (duration: string): string => {

@@ -93,7 +93,7 @@ const AiContentCard: React.FC<AiContentCardProps> = ({ progress }) => {
 
   // Memoize video URL and kill bookmarks to prevent re-renders
   const videoUrl = useMemo(() => {
-    return `http://localhost:2222/api/content?input=${encodeURIComponent(progress.content.filePath)}&type=${progress.content.type.toLowerCase()}`;
+    return `http://localhost:2322/api/content?input=${encodeURIComponent(progress.content.filePath)}&type=${progress.content.type.toLowerCase()}`;
   }, [progress.content.filePath, progress.content.type]);
 
   // Get all bookmarks
