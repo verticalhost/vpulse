@@ -14,10 +14,14 @@ namespace VPULSE.Backend.Auth
         string ApiBase,
         string ClientId,
         string Scopes,
-        string CallbackPath)
+        string CallbackPath,
+        // RFC 8252 8.3 prefers the literal loopback address, but registration forms often accept
+        // only "localhost", so this follows whatever the provider will register. ContentServer
+        // binds both, so either resolves.
+        string RedirectHost = "localhost")
     {
         /// <summary>Must byte-match between the authorize request and the token exchange.</summary>
-        public string RedirectUri => $"http://127.0.0.1:{ContentServer.Port}{CallbackPath}";
+        public string RedirectUri => $"http://{RedirectHost}:{ContentServer.Port}{CallbackPath}";
 
         public string[] ScopeList => Scopes.Split(' ', StringSplitOptions.RemoveEmptyEntries);
     }
@@ -41,16 +45,15 @@ namespace VPULSE.Backend.Auth
             Scopes: "profile:read",
             CallbackPath: "/auth/vpzone/callback"));
 
-        // TODO(gamefolio): the developer docs give these paths relative, without naming the host.
-        // Confirm the host and the client id when registering the app, and check whether the token
-        // endpoint requires a client_secret — a desktop app cannot keep one.
+        // Registered at developer.gamefolio.com as the "VPULSE" app. The redirect URI is matched
+        // exactly and the form only accepts localhost, so it cannot use the literal 127.0.0.1.
         public static readonly OAuthProvider Gamefolio = Configure(new OAuthProvider(
             Name: GamefolioName,
             DisplayName: "Gamefolio",
             AuthorizeUrl: "https://app.gamefolio.com/oauth/authorize",
             TokenUrl: "https://app.gamefolio.com/oauth/token",
             ApiBase: "https://app.gamefolio.com/api/public/v1",
-            ClientId: "",
+            ClientId: "8a74b779-92ec-473a-95ba-c87af1964a46",
             Scopes: "profile:read clips:write",
             CallbackPath: "/auth/gamefolio/callback"));
 
