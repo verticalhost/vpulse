@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode, useCallback, useEffect, useRef } 
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { sendMessageToBackend } from '../Utils/MessageUtils';
 import { useAuth } from '../Hooks/useAuth.tsx';
+import { setContentServerPort } from '../lib/contentServer';
 
 interface WebSocketContextType {
   sendMessage: (message: string) => void;
@@ -63,6 +64,12 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         const data: WebSocketMessage = JSON.parse(event.data);
         if (data.method !== 'RecordingPreviewFrame') {
           console.log('WebSocket message received:', data);
+        }
+
+        // Sent right after NewConnection, before anything renders a thumbnail or a video, so
+        // media URLs are built against the port the backend actually bound.
+        if (data.method === 'ContentServerPort' && data.content?.port) {
+          setContentServerPort(data.content.port);
         }
 
         // Handle version check

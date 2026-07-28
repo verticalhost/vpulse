@@ -3,6 +3,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using VPULSE.Backend.Api;
 using VPULSE.Backend.Auth;
 using VPULSE.Backend.Core;
 using System.Diagnostics;
@@ -249,6 +250,10 @@ namespace VPULSE.Backend.App
 
                             await UpdateService.SendCurrentUpdateProgressToFrontend();
                             _ = Task.Run(() => UpdateService.GetReleaseNotes());
+
+                            // The content server falls back to another port when 2322 is taken, so
+                            // the frontend cannot assume one when building media URLs.
+                            await SendFrontendMessage("ContentServerPort", new { port = ContentServer.Port });
 
                             // The renderer stores no session of its own, so it needs this pushed to
                             // it on every connection to know who is signed in.

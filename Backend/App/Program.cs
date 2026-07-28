@@ -261,7 +261,7 @@ namespace VPULSE.Backend.App
                     // renders as black video and missing thumbnails rather than an error.
                     try
                     {
-                        ContentServer.StartServer(ContentServer.Prefix);
+                        ContentServer.StartServer();
                     }
                     catch (Exception ex)
                     {

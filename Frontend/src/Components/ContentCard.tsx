@@ -25,6 +25,7 @@ import { useAiHighlights } from '../Context/AiHighlightsContext';
 import { useCompression } from '../Context/CompressionContext';
 import Button from './Button';
 import { useDeleteConfirmation } from '../Hooks/useDeleteConfirmation';
+import { contentServerUrl } from '../lib/contentServer';
 
 type VideoType = 'Session' | 'Buffer' | 'Clip' | 'Highlight';
 
@@ -209,7 +210,7 @@ export default function ContentCard({
             ? 'Clips'
             : 'Highlights';
     const thumbnailPath = `${cacheFolder}/thumbnails/${folderName}/${content?.fileName}.jpeg`;
-    return `http://localhost:2322/api/thumbnail?input=${encodeURIComponent(thumbnailPath)}`;
+    return contentServerUrl(`/api/thumbnail?input=${encodeURIComponent(thumbnailPath)}`);
   };
 
   const formatDuration = (duration: string): string => {

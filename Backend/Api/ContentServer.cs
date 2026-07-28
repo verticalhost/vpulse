@@ -1,5 +1,6 @@
 using Serilog;
 using System.Net;
+using System.Net.Sockets;
 using System.Web;
 using VPULSE.Backend.Auth;
 using VPULSE.Backend.Media;
@@ -13,24 +14,63 @@ namespace VPULSE.Backend.Api
         // Own port, for the same reason as MessageService.WebSocketPort: sharing Segra's 2222 means
         // whichever app starts first wins, and the loser's frontend asks the wrong server for its
         // files and gets a 404 (video and thumbnails render black).
-        internal const int Port = 2322;
-        internal static readonly string Prefix = $"http://localhost:{Port}/";
+        // Tried in order. Anything past the first is for machines where something already holds
+        // 2322; every one of these is registered as a redirect URI with the OAuth providers, so a
+        // fallback does not break sign-in. Adding one here means registering it there too.
+        internal static readonly int[] CandidatePorts = [2322, 2323, 2324, 2325];
 
-        private static readonly HttpListener _httpListener = new();
+        private static int _activePort = CandidatePorts[0];
+
+        /// <summary>The port actually bound. Only meaningful after <see cref="StartServer"/>.</summary>
+        internal static int Port => _activePort;
+
+        internal static string Prefix => $"http://localhost:{_activePort}/";
+
+        // Replaced per bind attempt: a listener whose Start() threw cannot be reused.
+        private static HttpListener _httpListener = new();
         private static CancellationTokenSource? _cancellationTokenSource;
 
-        public static void StartServer(string prefix)
+        public static void StartServer()
         {
-            _httpListener.Prefixes.Add(prefix);
+            foreach (int port in CandidatePorts)
+            {
+                // A fresh listener each time: reusing one whose Start() failed throws on the next
+                // attempt, which turned the fallback into a hard failure on the first busy port.
+                var listener = new HttpListener();
+                listener.Prefixes.Add($"http://localhost:{port}/");
 
-            // HttpListener routes on the Host header, so a "localhost" prefix answers 400 to a
-            // request addressed to 127.0.0.1. OAuth redirect URIs use the literal address
-            // (RFC 8252 8.3), so that form has to be bound too or every sign-in silently fails
-            // at the callback. Neither prefix needs elevation.
-            _httpListener.Prefixes.Add($"http://127.0.0.1:{Port}/");
+                // HttpListener routes on the Host header, so a "localhost" prefix answers 400 to a
+                // request addressed to 127.0.0.1. OAuth redirect URIs may use either form, so both
+                // have to be bound or the callback fails with no visible error. Neither needs
+                // elevation.
+                listener.Prefixes.Add($"http://127.0.0.1:{port}/");
 
-            _httpListener.Start();
-            Log.Information("Server started at {Prefix}", prefix);
+                try
+                {
+                    listener.Start();
+                }
+                catch (Exception ex) when (ex is HttpListenerException or SocketException)
+                {
+                    Log.Warning("Content server port {Port} is in use; trying the next one", port);
+                    listener.Close();
+                    continue;
+                }
+
+                _httpListener = listener;
+                _activePort = port;
+                break;
+            }
+
+            if (!_httpListener.IsListening)
+            {
+                // Media playback and OAuth callbacks both ride this listener, so there is no
+                // degraded mode worth pretending to offer.
+                Log.Error("Content server could not bind any of {Ports}; video playback and sign-in will not work",
+                    string.Join(", ", CandidatePorts));
+                return;
+            }
+
+            Log.Information("Server started at {Prefix}", Prefix);
 
             _cancellationTokenSource = new();
             _ = Task.Run(() => AcceptRequestsAsync(_cancellationTokenSource.Token));

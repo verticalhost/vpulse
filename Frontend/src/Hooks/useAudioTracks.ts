@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react
 import { createFile, MP4BoxBuffer } from 'mp4box';
 import type { ISOFile } from 'mp4box';
 import { Content } from '../Models/types';
+import { contentServerUrl } from '../lib/contentServer';
 
 export interface AudioTrackInfo {
   index: number;
@@ -405,7 +406,7 @@ export function useAudioTracks(
       master.connect(ctx.destination);
       masterGainRef.current = master;
 
-      const url = `http://localhost:2322/api/content?input=${encodeURIComponent(video.filePath)}`;
+      const url = contentServerUrl(`/api/content?input=${encodeURIComponent(video.filePath)}`);
       fetchUrlRef.current = url;
 
       // Probe file size via a tiny ranged GET. ContentServer exposes Content-Range

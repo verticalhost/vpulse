@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo, memo } from 'react';
 import { AiProgress } from '../Models/types';
+import { contentServerUrl } from '../lib/contentServer';
 
 interface VideoBackgroundProps {
   videoUrl: string;
@@ -93,7 +94,7 @@ const AiContentCard: React.FC<AiContentCardProps> = ({ progress }) => {
 
   // Memoize video URL and kill bookmarks to prevent re-renders
   const videoUrl = useMemo(() => {
-    return `http://localhost:2322/api/content?input=${encodeURIComponent(progress.content.filePath)}&type=${progress.content.type.toLowerCase()}`;
+    return contentServerUrl(`/api/content?input=${encodeURIComponent(progress.content.filePath)}&type=${progress.content.type.toLowerCase()}`);
   }, [progress.content.filePath, progress.content.type]);
 
   // Get all bookmarks
