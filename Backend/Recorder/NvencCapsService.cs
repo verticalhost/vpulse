@@ -1,10 +1,10 @@
 using Serilog;
 using System.Text.Json;
 using System.Diagnostics;
-using Segra.Backend.Shared;
+using VPULSE.Backend.Shared;
 using System.Text.Json.Serialization;
 
-namespace Segra.Backend.Recorder
+namespace VPULSE.Backend.Recorder
 {
     /// <summary>
     /// Probes NVENC encoder capabilities by running OBS's obs-nvenc-test.exe (shipped with the
@@ -55,7 +55,7 @@ namespace Segra.Backend.Recorder
         private static Task<NvencCaps?>? _capsTask;
 
         private static string CacheFilePath => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra", "nvenc_caps.json");
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE", "nvenc_caps.json");
 
         private static string TestExePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "obs-nvenc-test.exe");
 

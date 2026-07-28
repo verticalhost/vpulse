@@ -1,11 +1,11 @@
-# Flatpak manifest for Segra. Bundles the app + OBS recorder so nothing is downloaded at runtime,
+# Flatpak manifest for VPULSE. Bundles the app + OBS recorder so nothing is downloaded at runtime,
 # unlike the old download-based AppImage/.deb. Payload is pre-staged by build-flatpak.sh into
 # ../../flatpak-staging; this manifest just installs it. Build: ./build-flatpak.sh
-app-id: tv.segra.Segra
+app-id: tv.vpulse.VPULSE
 runtime: org.gnome.Platform
 runtime-version: '47'
 sdk: org.gnome.Sdk
-command: segra
+command: vpulse
 
 finish-args:
   # Windowing + input (Photino / WebKitGTK)
@@ -43,21 +43,21 @@ add-extensions:
     autodelete: false
 
 modules:
-  - name: segra
+  - name: vpulse
     buildsystem: simple
     build-commands:
       # Mount point for the ffmpeg-full extension
       - mkdir -p /app/lib/ffmpeg
-      # App payload (Segra + .NET runtime + wwwroot + OBS lib/obs-plugins/data + the two helpers)
-      - install -d /app/segra
-      - cp -a payload/. /app/segra/
-      - chmod +x /app/segra/Segra /app/segra/obs-nvenc-test /app/segra/obs-ffmpeg-mux
-      # Launcher on PATH as `segra` (the manifest command)
-      - install -Dm755 segra.sh /app/bin/segra
+      # App payload (VPULSE + .NET runtime + wwwroot + OBS lib/obs-plugins/data + the two helpers)
+      - install -d /app/vpulse
+      - cp -a payload/. /app/vpulse/
+      - chmod +x /app/vpulse/VPULSE /app/vpulse/obs-nvenc-test /app/vpulse/obs-ffmpeg-mux
+      # Launcher on PATH as `vpulse` (the manifest command)
+      - install -Dm755 vpulse.sh /app/bin/vpulse
       # Desktop integration
-      - install -Dm644 tv.segra.Segra.desktop /app/share/applications/tv.segra.Segra.desktop
-      - install -Dm644 tv.segra.Segra.metainfo.xml /app/share/metainfo/tv.segra.Segra.metainfo.xml
-      - install -Dm644 icon-256.png /app/share/icons/hicolor/256x256/apps/tv.segra.Segra.png
+      - install -Dm644 tv.vpulse.VPULSE.desktop /app/share/applications/tv.vpulse.VPULSE.desktop
+      - install -Dm644 tv.vpulse.VPULSE.metainfo.xml /app/share/metainfo/tv.vpulse.VPULSE.metainfo.xml
+      - install -Dm644 icon-256.png /app/share/icons/hicolor/256x256/apps/tv.vpulse.VPULSE.png
     sources:
       - type: dir
         path: ../../flatpak-staging

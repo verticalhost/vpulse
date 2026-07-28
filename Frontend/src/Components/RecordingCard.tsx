@@ -124,7 +124,7 @@ const RecordingCard: React.FC<RecordingCardProps> = ({ recording, preRecording }
     return () => clearInterval(intervalId);
   }, [recording?.startTime, preRecording]);
 
-  // Fetch game data from Segra.tv API
+  // Fetch game data from segra.tv API
   const fetchGameData = useCallback(async () => {
     // Skip API call entirely if game background is disabled
     if (!showGameBackground) {

@@ -1,11 +1,11 @@
 using Serilog;
-using Segra.Backend.App;
-using Segra.Backend.Core;
-using Segra.Backend.Shared;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Windows.Storage;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Windows.Storage;
 
-namespace Segra.Backend.Media
+namespace VPULSE.Backend.Media
 {
     /// <summary>
     /// Moves existing content whose video files live outside the selected recording path
@@ -220,7 +220,7 @@ namespace Segra.Backend.Media
             {
                 // Cross-volume: copy to temp, verify, swap in, and only delete the source after the
                 // sidecar is committed so an interrupted run never loses or orphans the original.
-                string tempPath = destPath + ".segramigrating";
+                string tempPath = destPath + ".vpulsemigrating";
                 try
                 {
                     if (File.Exists(tempPath))

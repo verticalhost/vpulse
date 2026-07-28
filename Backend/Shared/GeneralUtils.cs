@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using Vortice.DXCore;
 #endif
 
-namespace Segra.Backend.Shared
+namespace VPULSE.Backend.Shared
 {
     public static class GeneralUtils
     {

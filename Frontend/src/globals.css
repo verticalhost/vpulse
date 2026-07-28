@@ -4,7 +4,7 @@
 }
 
 @plugin "daisyui/theme" {
-  name: 'segra';
+  name: 'vpulse';
   default: true;
   color-scheme: dark;
   /* Dina färger (oförändrade) */

@@ -11,7 +11,7 @@ import { Settings, initialSettings } from '../Models/types';
 import { useWebSocketContext } from './WebSocketContext';
 import { sendMessageToBackend } from '../Utils/MessageUtils';
 
-export const SETTINGS_STORAGE_KEY = 'segra.settings.v1';
+export const SETTINGS_STORAGE_KEY = 'vpulse.settings.v1';
 
 type SettingsContextType = Settings;
 type SettingsUpdateContextType = (newSettings: Partial<Settings>, fromBackend?: boolean) => void;

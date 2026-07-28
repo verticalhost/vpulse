@@ -3,17 +3,17 @@ using Velopack;
 using System.Text;
 using System.Text.Json;
 using Velopack.Sources;
-using Segra.Backend.Recorder;
+using VPULSE.Backend.Recorder;
 using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 
-namespace Segra.Backend.App
+namespace VPULSE.Backend.App
 {
     public static class UpdateService
     {
         public static UpdateInfo? LatestUpdateInfo { get; private set; } = null;
-        public static GithubSource Source = new("https://github.com/Segergren/Segra", null, false);
-        public static GithubSource BetaSource = new("https://github.com/Segergren/Segra", null, true);
+        public static GithubSource Source = new("https://github.com/verticalhost/vpulse", null, false);
+        public static GithubSource BetaSource = new("https://github.com/verticalhost/vpulse", null, true);
         public static UpdateManager UpdateManager { get; private set; } = new(Source);
 
         // Falls back to the assembly version when Velopack has no metadata (dev builds, Flatpak).
@@ -317,10 +317,10 @@ namespace Segra.Backend.App
 
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
-                httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Segra", currentVersion.ToString()));
+                httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("VPULSE", currentVersion.ToString()));
 
                 // Fetch releases from GitHub API
-                var response = await httpClient.GetAsync($"https://api.github.com/repos/Segergren/Segra/releases");
+                var response = await httpClient.GetAsync($"https://api.github.com/repos/verticalhost/vpulse/releases");
                 response.EnsureSuccessStatusCode();
 
                 var content = await response.Content.ReadAsStringAsync();

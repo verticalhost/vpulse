@@ -1,8 +1,8 @@
 using NAudio.CoreAudioApi;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 using System.Text.RegularExpressions;
 
-namespace Segra.Backend.Windows.Audio
+namespace VPULSE.Backend.Windows.Audio
 {
     internal class AudioDeviceService
     {

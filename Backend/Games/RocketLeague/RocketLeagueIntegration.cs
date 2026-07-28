@@ -1,6 +1,6 @@
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Games.RocketLeague
+namespace VPULSE.Backend.Games.RocketLeague
 {
     internal class RocketLeagueIntegration : OcrIntegration
     {

@@ -1,8 +1,8 @@
 using Serilog;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 using System.Text.RegularExpressions;
 
-namespace Segra.Backend.Games.Minecraft
+namespace VPULSE.Backend.Games.Minecraft
 {
     /// <summary>
     /// Minecraft Java integration via latest.log tailing.
@@ -109,7 +109,7 @@ namespace Segra.Backend.Games.Minecraft
             _localUser = null;
 
             // The tail loop starts at end-of-file, so "Setting user:" (logged early in
-            // startup, often before Segra attaches) would otherwise be missed. Scan the
+            // startup, often before VPULSE attaches) would otherwise be missed. Scan the
             // existing contents once to recover it.
             try
             {

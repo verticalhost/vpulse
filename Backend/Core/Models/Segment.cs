@@ -1,4 +1,4 @@
-namespace Segra.Backend.Core.Models
+namespace VPULSE.Backend.Core.Models
 {
     public class Segment
     {

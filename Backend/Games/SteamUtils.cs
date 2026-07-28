@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 
-namespace Segra.Backend.Games
+namespace VPULSE.Backend.Games
 {
     public static class SteamUtils
     {

@@ -1,10 +1,10 @@
-# Flathub manifest for Segra: identical to ../tv.segra.Segra.yml except the payload comes from the
+# Flathub manifest for VPULSE: identical to ../tv.vpulse.VPULSE.yml except the payload comes from the
 # release tarball (by url + sha256) since Flathub's builders can't see our working copy.
-app-id: tv.segra.Segra
+app-id: tv.vpulse.VPULSE
 runtime: org.gnome.Platform
 runtime-version: '47'
 sdk: org.gnome.Sdk
-command: segra
+command: vpulse
 
 # x86_64 only: the payload is a linux-x64 .NET publish + OBS's Ubuntu-24.04 amd64 build.
 only-arches:
@@ -46,31 +46,31 @@ add-extensions:
     autodelete: false
 
 modules:
-  - name: segra
+  - name: vpulse
     buildsystem: simple
     build-commands:
       # Mount point for the ffmpeg-full extension
       - mkdir -p /app/lib/ffmpeg
-      # App payload (Segra + .NET runtime + wwwroot + OBS lib/obs-plugins/data + the two helpers)
-      - install -d /app/segra
-      - cp -a payload/. /app/segra/
-      - chmod +x /app/segra/Segra /app/segra/obs-nvenc-test /app/segra/obs-ffmpeg-mux
-      # Launcher on PATH as `segra` (the manifest command)
-      - install -Dm755 segra.sh /app/bin/segra
+      # App payload (VPULSE + .NET runtime + wwwroot + OBS lib/obs-plugins/data + the two helpers)
+      - install -d /app/vpulse
+      - cp -a payload/. /app/vpulse/
+      - chmod +x /app/vpulse/VPULSE /app/vpulse/obs-nvenc-test /app/vpulse/obs-ffmpeg-mux
+      # Launcher on PATH as `vpulse` (the manifest command)
+      - install -Dm755 vpulse.sh /app/bin/vpulse
       # Desktop integration
-      - install -Dm644 tv.segra.Segra.desktop /app/share/applications/tv.segra.Segra.desktop
-      - install -Dm644 tv.segra.Segra.metainfo.xml /app/share/metainfo/tv.segra.Segra.metainfo.xml
-      - install -Dm644 icon-256.png /app/share/icons/hicolor/256x256/apps/tv.segra.Segra.png
+      - install -Dm644 tv.vpulse.VPULSE.desktop /app/share/applications/tv.vpulse.VPULSE.desktop
+      - install -Dm644 tv.vpulse.VPULSE.metainfo.xml /app/share/metainfo/tv.vpulse.VPULSE.metainfo.xml
+      - install -Dm644 icon-256.png /app/share/icons/hicolor/256x256/apps/tv.vpulse.VPULSE.png
     sources:
       - type: archive
-        url: https://github.com/Segergren/Segra/releases/download/v1.7.0/segra-1.7.0-x86_64.tar.gz
+        url: https://github.com/verticalhost/vpulse/releases/download/v1.7.0/vpulse-1.7.0-x86_64.tar.gz
         # Placeholder until the first release build; the checker maintains it after that.
         sha256: 0000000000000000000000000000000000000000000000000000000000000000
-        # The tarball is the staged tree itself (payload/, segra.sh, .desktop, .metainfo.xml, icon).
+        # The tarball is the staged tree itself (payload/, vpulse.sh, .desktop, .metainfo.xml, icon).
         strip-components: 0
         # external-data-checker watches our latest non-prerelease GitHub release and PRs url + sha256 bumps.
         x-checker-data:
           type: json
-          url: https://api.github.com/repos/Segergren/Segra/releases/latest
+          url: https://api.github.com/repos/verticalhost/vpulse/releases/latest
           version-query: .tag_name | sub("^v"; "")
           url-query: .assets[] | select(.name | endswith("-x86_64.tar.gz")) | .browser_download_url

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Segra.Backend.Core.Models
+namespace VPULSE.Backend.Core.Models
 {
     public class Display : IEquatable<Display>
     {

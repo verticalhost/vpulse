@@ -2,10 +2,10 @@ using Serilog;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Segra.Backend.App;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Games.Dota2
+namespace VPULSE.Backend.Games.Dota2
 {
     internal class Dota2Integration : Integration, IDisposable
     {
@@ -293,7 +293,7 @@ namespace Segra.Backend.Games.Dota2
                     return;
                 }
 
-                string cfgPath = Path.Combine(cfgDir, "gamestate_integration_segra.cfg");
+                string cfgPath = Path.Combine(cfgDir, "gamestate_integration_vpulse.cfg");
                 string expectedContent = GenerateCfg();
 
                 if (File.Exists(cfgPath))
@@ -332,7 +332,7 @@ namespace Segra.Backend.Games.Dota2
 
         private static string GenerateCfg()
         {
-            return "\"Segra\"\n" +
+            return "\"VPULSE\"\n" +
                 "{\n" +
                 "    \"uri\"           \"http://localhost:1341/\"\n" +
                 "    \"timeout\"       \"5.0\"\n" +

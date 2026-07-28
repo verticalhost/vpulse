@@ -1,10 +1,10 @@
 using Serilog;
-using Segra.Backend.App;
-using Segra.Backend.Core;
-using Segra.Backend.Platform;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core;
+using VPULSE.Backend.Platform;
 using System.Text.Json.Serialization;
 
-namespace Segra.Backend.Core.Models
+namespace VPULSE.Backend.Core.Models
 {
     internal class Settings
     {
@@ -23,8 +23,8 @@ namespace Segra.Backend.Core.Models
         public static Settings Instance => _instance;
         public bool _isBulkUpdating = false;
 
-        private string _contentFolder = Shared.PathUtils.Normalize(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), "Segra"));
-        private string _cacheFolder = Shared.PathUtils.Normalize(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra"));
+        private string _contentFolder = Shared.PathUtils.Normalize(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), "VPULSE"));
+        private string _cacheFolder = Shared.PathUtils.Normalize(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE"));
         private string _resolution = "1440p";
         private int _frameRate = 60;
         private bool _stretch4By3 = true;
@@ -878,8 +878,8 @@ namespace Segra.Backend.Core.Models
             }
         }
 
-        // When true, Segra ensures Windows Game Mode is turned off on startup.
-        // When false, Segra leaves Game Mode untouched (it never turns it back on).
+        // When true, VPULSE ensures Windows Game Mode is turned off on startup.
+        // When false, VPULSE leaves Game Mode untouched (it never turns it back on).
         [JsonPropertyName("disableWindowsGameMode")]
         public bool DisableWindowsGameMode
         {
@@ -1066,7 +1066,7 @@ namespace Segra.Backend.Core.Models
         public string? FilePath
         {
             get => _filePath;
-            set => _filePath = Segra.Backend.Shared.PathUtils.NormalizeOrNull(value);
+            set => _filePath = VPULSE.Backend.Shared.PathUtils.NormalizeOrNull(value);
         } // Nullable in case recording is buffer
 
         [JsonPropertyName("game")]
@@ -1156,7 +1156,7 @@ namespace Segra.Backend.Core.Models
         public string FilePath
         {
             get => _filePath;
-            set => _filePath = Segra.Backend.Shared.PathUtils.Normalize(value ?? string.Empty);
+            set => _filePath = VPULSE.Backend.Shared.PathUtils.Normalize(value ?? string.Empty);
         }
 
         public string FileSize { get; set; } = string.Empty;

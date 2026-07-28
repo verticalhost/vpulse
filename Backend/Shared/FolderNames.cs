@@ -1,6 +1,6 @@
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Shared
+namespace VPULSE.Backend.Shared
 {
     /// <summary>
     /// Centralized folder name constants and path helpers.
@@ -31,8 +31,8 @@ namespace Segra.Backend.Shared
         public const string LegacyWaveforms = ".waveforms";
 
         /// <summary>
-        /// Gets the cache folder path for Segra (metadata, thumbnails, waveforms).
-        /// This is configurable via Settings, with default at C:\Users\{user}\AppData\Roaming\Segra
+        /// Gets the cache folder path for VPULSE (metadata, thumbnails, waveforms).
+        /// This is configurable via Settings, with default at C:\Users\{user}\AppData\Roaming\VPULSE
         /// </summary>
         public static string CacheFolder => PathUtils.Normalize(Settings.Instance.CacheFolder);
 
@@ -85,7 +85,7 @@ namespace Segra.Backend.Shared
 
         /// <summary>
         /// Gets the full path to the metadata folder for a content type.
-        /// Metadata is stored in AppData/Roaming/Segra/metadata/{ContentType}
+        /// Metadata is stored in AppData/Roaming/VPULSE/metadata/{ContentType}
         /// </summary>
         public static string GetMetadataFolderPath(Content.ContentType type)
         {
@@ -94,7 +94,7 @@ namespace Segra.Backend.Shared
 
         /// <summary>
         /// Gets the full path to the thumbnails folder for a content type.
-        /// Thumbnails are stored in AppData/Roaming/Segra/thumbnails/{ContentType}
+        /// Thumbnails are stored in AppData/Roaming/VPULSE/thumbnails/{ContentType}
         /// </summary>
         public static string GetThumbnailsFolderPath(Content.ContentType type)
         {
@@ -103,7 +103,7 @@ namespace Segra.Backend.Shared
 
         /// <summary>
         /// Gets the full path to the waveforms folder for a content type.
-        /// Waveforms are stored in AppData/Roaming/Segra/waveforms/{ContentType}
+        /// Waveforms are stored in AppData/Roaming/VPULSE/waveforms/{ContentType}
         /// </summary>
         public static string GetWaveformsFolderPath(Content.ContentType type)
         {

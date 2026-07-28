@@ -52,7 +52,7 @@ export default function AudioDevicesSection({
   const [trackLimitWarnDismissed, setTrackLimitWarnDismissed] = useState<boolean>(false);
 
   useEffect(() => {
-    const storedSig = localStorage.getItem('segra.trackLimitWarnDismissedSig');
+    const storedSig = localStorage.getItem('vpulse.trackLimitWarnDismissedSig');
     if (hasOverTrackLimit) {
       setTrackLimitWarnDismissed(storedSig === selectionSig);
     } else {
@@ -453,7 +453,7 @@ export default function AudioDevicesSection({
                 className="text-amber-300 hover:text-amber-100"
                 onClick={() => {
                   setTrackLimitWarnDismissed(true);
-                  localStorage.setItem('segra.trackLimitWarnDismissedSig', selectionSig);
+                  localStorage.setItem('vpulse.trackLimitWarnDismissedSig', selectionSig);
                 }}
               >
                 <X className="h-4 w-4" />

@@ -9,6 +9,6 @@ export default {
   '**/*.cs': (files) => {
     const quoted = files.map((f) => `"${f}"`).join(' ');
     // Run dotnet format on the whole solution - more reliable than per-file
-    return [`dotnet format Segra.sln`];
+    return [`dotnet format VPULSE.sln`];
   },
 };

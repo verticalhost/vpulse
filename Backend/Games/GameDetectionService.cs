@@ -2,9 +2,9 @@ using Serilog;
 using System.Text;
 using System.Text.Json;
 using System.Diagnostics;
-using Segra.Backend.Shared;
-using Segra.Backend.Recorder;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Recorder;
+using VPULSE.Backend.Core.Models;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -13,7 +13,7 @@ using System.Security;
 using System.Management;
 #endif
 
-namespace Segra.Backend.Games
+namespace VPULSE.Backend.Games
 {
     public static class GameDetectionService
     {

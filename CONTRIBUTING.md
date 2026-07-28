@@ -1,4 +1,4 @@
-# Contributing to Segra
+# Contributing to VPULSE
 
 A quick, practical guide to get you developing on both the backend (C#/.NET) and the frontend (React/Vite).
 
@@ -22,11 +22,11 @@ desktop capture.
 
 ### Building
 Use `./build-local.sh` and pick **Windows** or **Linux** with the Up/Down arrows (or set
-`SEGRA_BUILD_TARGET=windows|linux` to skip the menu). The Linux target produces a runnable `publish/`
+`VPULSE_BUILD_TARGET=windows|linux` to skip the menu). The Linux target produces a runnable `publish/`
 for quick local dev (launch `publish/run.sh`).
 
 The Linux **distributable is a Flatpak**, one artifact for every distro, with OBS bundled inside. Build
-it with `./build-flatpak.sh` (needs `flatpak` + `flatpak-builder`); it produces `output/Segra.flatpak`.
+it with `./build-flatpak.sh` (needs `flatpak` + `flatpak-builder`); it produces `output/VPULSE.flatpak`.
 Windows still ships via Velopack (`vpk`).
 
 A `linux-x64` dev build can be cross-compiled from Windows, but running/recording needs a Linux host with:
@@ -37,9 +37,9 @@ runtime, so an end user installing the Flatpak needs none of it. Display capture
 and the PipeWire portal source on Wayland.
 
 ### Linux packaging (Flatpak)
-The Flatpak (`packaging/flatpak/tv.segra.Segra.yml`) targets the GNOME 47 runtime and bundles the app
-plus the OBS recorder (`lib/` + `obs-plugins/` + `data/` + the two helpers) next to the `Segra` binary at
-`/app/segra`. A launcher (`packaging/flatpak/segra.sh`) exports `SEGRA_OBS_*` + `LD_LIBRARY_PATH`, which
+The Flatpak (`packaging/flatpak/tv.vpulse.VPULSE.yml`) targets the GNOME 47 runtime and bundles the app
+plus the OBS recorder (`lib/` + `obs-plugins/` + `data/` + the two helpers) next to the `VPULSE` binary at
+`/app/vpulse`. A launcher (`packaging/flatpak/vpulse.sh`) exports `VPULSE_OBS_*` + `LD_LIBRARY_PATH`, which
 makes `LinuxObsRuntime` resolve the bundled OBS with no download and no re-exec. FFmpeg comes from the
 `org.freedesktop.Platform.ffmpeg-full` runtime extension.
 
@@ -49,7 +49,7 @@ Ubuntu-24.04 `.deb`** on GitHub releases. The 24.04 base is deliberate: OBS buil
 `libavcodec.so.62` and would not `dlopen`. The same script refreshes
 `packaging/linux/obs-helpers/{obs-nvenc-test,obs-ffmpeg-mux}`. libobs resolves these next to the
 **running executable** (`readlink /proc/self/exe` → `dirname`), so `build-flatpak.sh` places them beside
-`Segra`. Without `obs-nvenc-test`, NVENC is reported unsupported; without `obs-ffmpeg-mux`, recordings and
+`VPULSE`. Without `obs-nvenc-test`, NVENC is reported unsupported; without `obs-ffmpeg-mux`, recordings and
 replay saves never mux to disk.
 
 > Note: the app still contains the older runtime-download path (`CheckIfExistsOrDownloadAsync`) and
@@ -57,13 +57,13 @@ replay saves never mux to disk.
 > layout, and Flatpak handles updates). They remain as the fallback for a raw `publish/` dev run.
 
 ## Repo Layout
-- `Segra.sln` — solution root
+- `VPULSE.sln` — solution root
 - `Backend/` — app services, models, utils
 - `Frontend/` — React + Vite app (TypeScript, Tailwind, DaisyUI)
 
 ## First-Time Setup
 1. Clone the repo
-   - `git clone <your-fork-or-upstream> && cd Segra`
+   - `git clone <your-fork-or-upstream> && cd VPULSE`
 2. Install root dev tools (husky/lint-staged for hooks)
    - `npm install` (also runs `prepare` to set up husky)
 3. Install frontend deps
@@ -79,7 +79,7 @@ There are two parts running during development: the backend (Photino.NET desktop
 
 ### Start the Backend (.NET)
 - From the repo root:
-  - `dotnet run --project Segra.csproj`
+  - `dotnet run --project VPULSE.csproj`
 - Notes:
   - In Debug mode the app expects the frontend on `http://localhost:2882`.
   - If Node/npm is installed, the backend attempts to auto-run `npm run dev` in `Frontend/` if nothing is listening on 2882.

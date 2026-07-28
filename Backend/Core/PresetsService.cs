@@ -1,9 +1,9 @@
 using Serilog;
-using Segra.Backend.App;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Platform;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Platform;
 
-namespace Segra.Backend.Core
+namespace VPULSE.Backend.Core
 {
     // Concrete video quality values produced by a named preset (low/standard/high).
     public class VideoPresetValues

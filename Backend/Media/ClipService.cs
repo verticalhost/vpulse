@@ -1,15 +1,15 @@
 using Serilog;
 using System.Text.Json;
-using Segra.Backend.App;
-using Segra.Backend.Core;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core;
 using System.Diagnostics;
-using Segra.Backend.Shared;
+using VPULSE.Backend.Shared;
 using System.Globalization;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Windows.Storage;
-using static Segra.Backend.Shared.GeneralUtils;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Windows.Storage;
+using static VPULSE.Backend.Shared.GeneralUtils;
 
-namespace Segra.Backend.Media
+namespace VPULSE.Backend.Media
 {
     public static class ClipService
     {

@@ -1,8 +1,8 @@
 using Serilog;
 using Microsoft.Win32;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Windows.GameMode
+namespace VPULSE.Backend.Windows.GameMode
 {
     internal static class GameModeService
     {
@@ -13,7 +13,7 @@ namespace Segra.Backend.Windows.GameMode
 
         /// <summary>
         /// Ensures Windows Game Mode is turned off, but only when the user has opted in via the
-        /// DisableWindowsGameMode setting. When the setting is false this is a no-op: Segra never
+        /// DisableWindowsGameMode setting. When the setting is false this is a no-op: VPULSE never
         /// turns Game Mode on, it only ensures it stays off when explicitly asked to.
         /// </summary>
         public static void EnforceDisabledIfEnabled()

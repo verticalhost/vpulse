@@ -1,9 +1,9 @@
 using Serilog;
 using System.Text.Json;
-using Segra.Backend.App;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Windows.Storage
+namespace VPULSE.Backend.Windows.Storage
 {
     /// <summary>
     /// Service for handling storage-related warnings and user confirmations

@@ -2,7 +2,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using Serilog;
 
-namespace Segra.Backend.Shared
+namespace VPULSE.Backend.Shared
 {
     public static class IconUtils
     {

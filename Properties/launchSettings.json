@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Segra": {
+    "VPULSE": {
       "commandName": "Project",
       "commandLineArgs": "--debug",
       "nativeDebugging": true

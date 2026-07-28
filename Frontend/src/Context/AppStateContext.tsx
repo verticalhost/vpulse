@@ -12,7 +12,7 @@ interface AppStateProviderProps {
 }
 
 export function AppStateProvider({ children }: AppStateProviderProps) {
-  const STORAGE_KEY = 'segra.appstate.v1';
+  const STORAGE_KEY = 'vpulse.appstate.v1';
 
   const loadCachedState = (): State => {
     try {

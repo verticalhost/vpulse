@@ -3,15 +3,15 @@ using System.Windows.Forms;
 using NAudio.Wave;
 using NAudio.CoreAudioApi;
 using NAudio.Wave.SampleProviders;
-using Segra.Backend.App;
-using Segra.Backend.Core;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Shared;
-using Segra.Backend.Windows.Audio;
-using Segra.Backend.Windows.Display;
-using Segra.Backend.Windows.Watchers;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Windows.Audio;
+using VPULSE.Backend.Windows.Display;
+using VPULSE.Backend.Windows.Watchers;
 
-namespace Segra.Backend.Platform.Windows
+namespace VPULSE.Backend.Platform.Windows
 {
     internal sealed class WindowsTrayIcon : ITrayIcon
     {
@@ -25,7 +25,7 @@ namespace Segra.Backend.Platform.Windows
                 using var icon = new NotifyIcon
                 {
                     Icon = Properties.Resources.icon,
-                    Text = "Segra",
+                    Text = "VPULSE",
                     Visible = true
                 };
 

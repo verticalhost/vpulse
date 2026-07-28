@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Segra.Backend.Platform
+namespace VPULSE.Backend.Platform
 {
     /// <summary>
     /// Service locator for platform-specific implementations. <see cref="Initialize"/> is called

@@ -1,8 +1,8 @@
 using System.Linq;
-using Segra.Backend.Core;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Games
+namespace VPULSE.Backend.Games
 {
     // The recording settings that actually apply to a given recording, after overlaying any
     // per-game overrides on top of the global settings. Resolved once at record start.

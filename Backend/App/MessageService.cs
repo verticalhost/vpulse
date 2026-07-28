@@ -3,19 +3,19 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using Segra.Backend.Auth;
-using Segra.Backend.Core;
+using VPULSE.Backend.Auth;
+using VPULSE.Backend.Core;
 using System.Diagnostics;
-using Segra.Backend.Games;
-using Segra.Backend.Media;
-using Segra.Backend.Shared;
-using Segra.Backend.Platform;
+using VPULSE.Backend.Games;
+using VPULSE.Backend.Media;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Platform;
 using System.Net.WebSockets;
-using Segra.Backend.Recorder;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Windows.Storage;
+using VPULSE.Backend.Recorder;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Windows.Storage;
 
-namespace Segra.Backend.App
+namespace VPULSE.Backend.App
 {
     public static class MessageService
     {
@@ -177,7 +177,7 @@ namespace Segra.Backend.App
                             break;
                         case "OpenLogsLocation":
                             _ = Task.Run(() => DiagnosticsService.LogSnapshot());
-                            string logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra");
+                            string logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE");
                             string? logFilePath = Directory.GetFiles(logDir, "*.log").FirstOrDefault();
                             if (!string.IsNullOrEmpty(logFilePath))
                             {
@@ -185,7 +185,7 @@ namespace Segra.Backend.App
                             }
                             else
                             {
-                                Log.Warning("No log files found in the Segra directory");
+                                Log.Warning("No log files found in the VPULSE directory");
                             }
                             break;
                         case "SelectGameExecutable":

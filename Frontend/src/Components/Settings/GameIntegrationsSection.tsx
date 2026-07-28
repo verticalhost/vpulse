@@ -187,7 +187,7 @@ export default function GameIntegrationsSection() {
     <div className="p-4 bg-base-300 rounded-lg shadow-md border border-custom">
       <h2 className="text-xl font-semibold mb-2">Game Integrations</h2>
       <p className="text-sm opacity-80 mb-4">
-        Enable automatic event detection for supported games. When enabled, Segra will automatically
+        Enable automatic event detection for supported games. When enabled, VPULSE will automatically
         bookmark kills, goals, and other events during gameplay.
       </p>
 

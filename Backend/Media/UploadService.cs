@@ -1,15 +1,15 @@
 using Serilog;
 using System.Net;
 using System.Text.Json;
-using Segra.Backend.App;
-using Segra.Backend.Auth;
-using Segra.Backend.Core;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Auth;
+using VPULSE.Backend.Core;
 using System.Diagnostics;
-using Segra.Backend.Shared;
+using VPULSE.Backend.Shared;
 using System.Net.Http.Headers;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Media
+namespace VPULSE.Backend.Media
 {
     internal static class UploadService
     {

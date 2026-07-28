@@ -2,10 +2,10 @@ using System.Text;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
-using Segra.Backend.Shared;
+using VPULSE.Backend.Shared;
 using Serilog.Formatting.Display;
 
-namespace Segra.Backend.App
+namespace VPULSE.Backend.App
 {
     internal sealed class TrimmingFileSink : ILogEventSink, IDisposable
     {

@@ -1,6 +1,6 @@
 using Microsoft.Win32;
 
-namespace Segra.Backend.Windows.Watchers
+namespace VPULSE.Backend.Windows.Watchers
 {
     public class DisplayWatcher : IDisposable
     {

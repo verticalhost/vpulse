@@ -1,7 +1,7 @@
 #!/bin/bash
-# Builds the Segra Flatpak, one artifact for every distro.
+# Builds the VPULSE Flatpak, one artifact for every distro.
 #
-#   SEGRA_VERSION=1.7.0 OBS_VERSION=32.2.0 ./build-flatpak.sh
+#   VPULSE_VERSION=1.7.0 OBS_VERSION=32.2.0 ./build-flatpak.sh
 #
 # Requires: flatpak, flatpak-builder, dotnet 10 SDK, node (installs the GNOME 47 runtime/SDK +
 # ffmpeg-full from Flathub if missing).
@@ -10,11 +10,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-VERSION="${SEGRA_VERSION:-1.0.0}"
+VERSION="${VPULSE_VERSION:-1.0.0}"
 OBS_VERSION="${OBS_VERSION:-32.2.0}"
 # Exported so csproj's BuildFrontendAssets target stamps the frontend build with the same version.
-export SEGRA_VERSION="$VERSION"
-APP_ID="tv.segra.Segra"
+export VPULSE_VERSION="$VERSION"
+APP_ID="tv.vpulse.VPULSE"
 MANIFEST="packaging/flatpak/${APP_ID}.yml"
 STAGING="flatpak-staging"
 
@@ -27,9 +27,9 @@ flatpak install --user -y --noninteractive flathub \
     org.gnome.Platform//47 org.gnome.Sdk//47 org.freedesktop.Platform.ffmpeg-full//24.08 || true
 
 echo "=== 1/4 Frontend + publish (linux-x64, v$VERSION) ==="
-(cd Frontend && npm ci && SEGRA_VERSION="$VERSION" npm run build)
+(cd Frontend && npm ci && VPULSE_VERSION="$VERSION" npm run build)
 rm -rf publish
-dotnet publish Segra.csproj -c Release --self-contained \
+dotnet publish VPULSE.csproj -c Release --self-contained \
     -r linux-x64 -f net10.0 -p:TargetFrameworks=net10.0 -p:Version="$VERSION" -o publish
 # PhotinoServer creates its webroot at startup if missing; ship it so nothing is created at runtime.
 mkdir -p publish/wwwroot && cp -r Frontend/dist/* publish/wwwroot/ 2>/dev/null || true
@@ -42,14 +42,14 @@ OBS_TARBALL="Obs/OBS ${OBS_VERSION} linux.tar.gz"
 echo "=== 3/4 Stage payload -> $STAGING ==="
 rm -rf "$STAGING"
 mkdir -p "$STAGING/payload"
-# App (Segra binary + .NET runtime + wwwroot)
+# App (VPULSE binary + .NET runtime + wwwroot)
 cp -a publish/. "$STAGING/payload/"
-# OBS runtime (lib/ + obs-plugins/ + data/) unpacked NEXT TO the Segra binary so LinuxObsRuntime's
+# OBS runtime (lib/ + obs-plugins/ + data/) unpacked NEXT TO the VPULSE binary so LinuxObsRuntime's
 # self-contained-bundle path (appDir/lib/libobs.so.0) resolves it with no download.
 tar xzf "$OBS_TARBALL" -C "$STAGING/payload"
-# The two subprocess helpers, beside the Segra binary (libobs finds them via /proc/self/exe).
+# The two subprocess helpers, beside the VPULSE binary (libobs finds them via /proc/self/exe).
 cp -a packaging/linux/obs-helpers/obs-nvenc-test packaging/linux/obs-helpers/obs-ffmpeg-mux "$STAGING/payload/"
-chmod +x "$STAGING/payload/Segra" "$STAGING/payload/obs-nvenc-test" "$STAGING/payload/obs-ffmpeg-mux"
+chmod +x "$STAGING/payload/VPULSE" "$STAGING/payload/obs-nvenc-test" "$STAGING/payload/obs-ffmpeg-mux"
 
 # Bundle OBS's media deps (Ubuntu-24.04 FFmpeg 6/x264/jansson/rist/srt) that the runtime's FFmpeg 7 can't satisfy.
 LIBDST="$STAGING/payload/lib"
@@ -80,7 +80,7 @@ bundle_media_dep() {   # $1 = resolved host path
 done
 echo "bundled $(ls "$LIBDST" | grep -cvE '^libobs') media libs into payload/lib"
 # Flatpak metadata + launcher + icon the manifest installs
-cp packaging/flatpak/segra.sh "$STAGING/"
+cp packaging/flatpak/vpulse.sh "$STAGING/"
 cp "packaging/flatpak/${APP_ID}.desktop" "$STAGING/"
 sed -e "s/@VERSION@/$VERSION/" -e "s/@DATE@/$(date -u +%Y-%m-%d)/" \
     "packaging/flatpak/${APP_ID}.metainfo.xml" > "$STAGING/${APP_ID}.metainfo.xml"
@@ -91,18 +91,18 @@ echo "=== 4/4 flatpak-builder ==="
 rm -rf build-dir repo output
 flatpak-builder --user --force-clean --repo=repo build-dir "$MANIFEST"
 mkdir -p output
-flatpak build-bundle repo "output/Segra.flatpak" "$APP_ID"
+flatpak build-bundle repo "output/VPULSE.flatpak" "$APP_ID"
 
 # The same staged tree, as a tarball the Flathub manifest consumes by url + sha256.
-PAYLOAD="output/segra-${VERSION}-x86_64.tar.gz"
+PAYLOAD="output/vpulse-${VERSION}-x86_64.tar.gz"
 tar czf "$PAYLOAD" -C "$STAGING" .
 sha256sum "$PAYLOAD" | awk '{print $1}' > "$PAYLOAD.sha256"
 
 echo ""
 echo "=== Done ==="
-echo "Bundle:  $SCRIPT_DIR/output/Segra.flatpak"
+echo "Bundle:  $SCRIPT_DIR/output/VPULSE.flatpak"
 echo "Payload: $SCRIPT_DIR/$PAYLOAD"
 echo "sha256:  $(cat "$PAYLOAD.sha256")"
 echo "Install/run:"
-echo "  flatpak install --user ./output/Segra.flatpak"
+echo "  flatpak install --user ./output/VPULSE.flatpak"
 echo "  flatpak run $APP_ID"

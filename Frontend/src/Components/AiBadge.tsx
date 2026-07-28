@@ -10,7 +10,7 @@ interface AiBadgeProps {
 }
 
 export default function AiBadge({
-  tip = 'Powered by Segra AI',
+  tip = 'Powered by VPULSE AI',
   side = 'top',
   className = '',
   iconClassName = '',

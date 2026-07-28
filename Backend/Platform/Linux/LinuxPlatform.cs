@@ -1,8 +1,8 @@
 using Serilog;
 using System.Diagnostics;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Platform.Linux
+namespace VPULSE.Backend.Platform.Linux
 {
     /// <summary>Linux has no portable, cross-desktop tray API this milestone, so the tray is a no-op.</summary>
     internal sealed class LinuxTrayIcon : ITrayIcon
@@ -246,7 +246,7 @@ namespace Segra.Backend.Platform.Linux
                 : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         private static string DesktopFilePath =>
-            Path.Combine(ConfigDir, "autostart", "segra.desktop");
+            Path.Combine(ConfigDir, "autostart", "vpulse.desktop");
 
         public void SetStartupStatus(bool enable)
         {
@@ -263,17 +263,17 @@ namespace Segra.Backend.Platform.Linux
                     string contents =
                         "[Desktop Entry]\n" +
                         "Type=Application\n" +
-                        "Name=Segra\n" +
+                        "Name=VPULSE\n" +
                         $"Exec={exec}\n" +
                         "X-GNOME-Autostart-enabled=true\n" +
                         "Terminal=false\n";
                     File.WriteAllText(path, contents);
-                    Log.Information("Added Segra to autostart (.desktop)");
+                    Log.Information("Added VPULSE to autostart (.desktop)");
                 }
                 else if (File.Exists(path))
                 {
                     File.Delete(path);
-                    Log.Information("Removed Segra from autostart");
+                    Log.Information("Removed VPULSE from autostart");
                 }
             }
             catch (Exception ex)
@@ -296,7 +296,7 @@ namespace Segra.Backend.Platform.Linux
         {
             try
             {
-                string tempPath = Path.Combine(Path.GetTempPath(), $"segra_sfx_{Guid.NewGuid():N}.wav");
+                string tempPath = Path.Combine(Path.GetTempPath(), $"vpulse_sfx_{Guid.NewGuid():N}.wav");
                 File.WriteAllBytes(tempPath, wavData);
 
                 var psi = new ProcessStartInfo("paplay", $"--volume={(int)(Math.Clamp(volume, 0f, 1f) * 65536)} \"{tempPath}\"")

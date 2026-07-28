@@ -1,31 +1,31 @@
 using Serilog;
 using ObsKit.NET;
 using ObsKit.NET.Scenes;
-using Segra.Backend.App;
+using VPULSE.Backend.App;
 using ObsKit.NET.Outputs;
 using ObsKit.NET.Sources;
-using Segra.Backend.Core;
+using VPULSE.Backend.Core;
 using System.Diagnostics;
 using ObsKit.NET.Encoders;
-using Segra.Backend.Games;
-using Segra.Backend.Media;
-using Segra.Backend.Shared;
-using Segra.Backend.Platform;
+using VPULSE.Backend.Games;
+using VPULSE.Backend.Media;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Platform;
 using System.Net.Http.Json;
 using System.IO.Compression;
 using ObsKit.NET.Native.Types;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 using System.Threading.Channels;
-using Segra.Backend.Windows.Input;
-using Segra.Backend.Windows.Storage;
+using VPULSE.Backend.Windows.Input;
+using VPULSE.Backend.Windows.Storage;
 using System.Text.RegularExpressions;
-using static Segra.Backend.App.MessageService;
-using static Segra.Backend.Shared.GeneralUtils;
+using static VPULSE.Backend.App.MessageService;
+using static VPULSE.Backend.Shared.GeneralUtils;
 #if WINDOWS
-using Segra.Backend.Windows.Display;
+using VPULSE.Backend.Windows.Display;
 #endif
 
-namespace Segra.Backend.Recorder
+namespace VPULSE.Backend.Recorder
 {
     public static partial class OBSService
     {
@@ -516,14 +516,14 @@ namespace Segra.Backend.Recorder
 #if WINDOWS
                 await MessageService.ShowModal(
                     "Recorder Error",
-                    "The recorder installation failed. Please check your internet connection and try again. If you have any games running, please close them and restart Segra.",
+                    "The recorder installation failed. Please check your internet connection and try again. If you have any games running, please close them and restart VPULSE.",
                     "error",
                     "Could not install recorder"
                 );
 #else
                 await MessageService.ShowModal(
                     "Recorder not found",
-                    "Segra's Linux recorder needs OBS Studio's libraries (libobs). Install OBS with your package manager, for example:\n\n    sudo apt install obs-studio\n\nThen restart Segra.",
+                    "VPULSE's Linux recorder needs OBS Studio's libraries (libobs). Install OBS with your package manager, for example:\n\n    sudo apt install obs-studio\n\nThen restart VPULSE.",
                     "error",
                     "OBS Studio not found"
                 );
@@ -558,9 +558,9 @@ namespace Segra.Backend.Recorder
                 Log.Information($"OBS runtime paths (absolute): data='{obsDataPath}', modules='{obsModulePath}'");
 #else
                 // The launcher/re-exec resolves the OBS runtime and passes paths via env vars.
-                string obsModulePath = Environment.GetEnvironmentVariable("SEGRA_OBS_MODULE_PATH") ?? "./obs-plugins/";
-                string obsModuleDataPath = Environment.GetEnvironmentVariable("SEGRA_OBS_MODULE_DATA_PATH") ?? "./data/obs-plugins/%module%/";
-                string obsDataPath = Environment.GetEnvironmentVariable("SEGRA_OBS_DATA_PATH") ?? "./data/libobs/";
+                string obsModulePath = Environment.GetEnvironmentVariable("VPULSE_OBS_MODULE_PATH") ?? "./obs-plugins/";
+                string obsModuleDataPath = Environment.GetEnvironmentVariable("VPULSE_OBS_MODULE_DATA_PATH") ?? "./data/obs-plugins/%module%/";
+                string obsDataPath = Environment.GetEnvironmentVariable("VPULSE_OBS_DATA_PATH") ?? "./data/libobs/";
                 Log.Information($"Linux OBS runtime: data='{obsDataPath}', modules='{obsModulePath}'");
 #endif
                 _obsContext = Obs.Initialize(config =>
@@ -1037,7 +1037,7 @@ namespace Segra.Backend.Recorder
 
             try
             {
-                _videoEncoder = new VideoEncoder(encoderId, "Segra Recorder", videoEncoderSettings);
+                _videoEncoder = new VideoEncoder(encoderId, "VPULSE Recorder", videoEncoderSettings);
             }
             catch (Exception ex) when (_isHdrRecording)
             {
@@ -1055,7 +1055,7 @@ namespace Segra.Backend.Recorder
                 encoderId = eff.Codec!.InternalEncoderId;
                 videoEncoderSettings.Set("profile", "high");
                 ApplyNvencBFrameLimit(videoEncoderSettings, encoderId);
-                _videoEncoder = new VideoEncoder(encoderId, "Segra Recorder", videoEncoderSettings);
+                _videoEncoder = new VideoEncoder(encoderId, "VPULSE Recorder", videoEncoderSettings);
             }
 
             // Create audio sources and add to scene
@@ -2023,7 +2023,7 @@ namespace Segra.Backend.Recorder
 
         /// <summary>
         /// Fires whenever an output stops. OBS reports Success for normal stops (including ones
-        /// Segra initiates). Any other code means OBS stopped the output on its own (disk full,
+        /// VPULSE initiates). Any other code means OBS stopped the output on its own (disk full,
         /// encoder error, etc.), so we tear down our state and notify the user.
         /// Runs on an OBS thread, so heavy work is dispatched off it.
         /// </summary>
@@ -2034,7 +2034,7 @@ namespace Segra.Backend.Recorder
 
             var code = e.Code;
 
-            // Segra already initiated the stop; the teardown is running, so don't double-handle.
+            // VPULSE already initiated the stop; the teardown is running, so don't double-handle.
             if (_isStoppingOrStopped)
             {
                 Log.Warning($"Output stopped with code {code} while already stopping.");
@@ -2060,8 +2060,8 @@ namespace Segra.Backend.Recorder
         }
 
         /// <summary>
-        /// Notifies the user about an unexpected output stop with a Segra-friendly message,
-        /// then brings Segra's recording state in line with OBS (which already tore the output down).
+        /// Notifies the user about an unexpected output stop with a VPULSE-friendly message,
+        /// then brings VPULSE's recording state in line with OBS (which already tore the output down).
         /// </summary>
         private static async Task HandleUnexpectedOutputStop(ObsOutputStopCode code, string? lastError)
         {
@@ -2089,7 +2089,7 @@ namespace Segra.Backend.Recorder
 
         /// <summary>
         /// Maps the failure OBS reports - the coarse stop code plus the raw last-error string OBS
-        /// writes (see obs-ffmpeg-mux.c / ffmpeg-mux.c / obs-nvenc) - to a clean Segra message.
+        /// writes (see obs-ffmpeg-mux.c / ffmpeg-mux.c / obs-nvenc) - to a clean VPULSE message.
         /// OBS's own text is never shown to the user; it is only inspected here to pick the message.
         /// The string is matched first because the code is unreliable (e.g. the MP4 muxer reports a
         /// full disk as OBS_OUTPUT_ENCODE_ERROR with "No space left on device" only in the string).
@@ -2110,7 +2110,7 @@ namespace Segra.Backend.Recorder
             if (Has("recording helper process"))
             {
                 return ("Recording stopped: helper process blocked",
-                    "The recording helper process could not run. It may have been blocked or removed by antivirus or security software. Add Segra to your antivirus exclusions and try again.");
+                    "The recording helper process could not run. It may have been blocked or removed by antivirus or security software. Add VPULSE to your antivirus exclusions and try again.");
             }
 
             // Cannot write to the recording folder: "Unable to write to %1", "Couldn't open '<path>', Permission denied"
@@ -2118,7 +2118,7 @@ namespace Segra.Backend.Recorder
                 Has("Permission denied") || Has("Access is denied"))
             {
                 return ("Recording stopped: cannot write to folder",
-                    "Segra could not write the recording to your selected folder. Make sure the folder still exists and that your account is allowed to write to it.");
+                    "VPULSE could not write the recording to your selected folder. Make sure the folder still exists and that your account is allowed to write to it.");
             }
 
             // Encoder failure: NVENC / CUDA / codec errors (obs-nvenc sets these on the encoder)
@@ -2513,7 +2513,7 @@ namespace Segra.Backend.Recorder
                     }
                     finally
                     {
-                        // Segra-initiated graceful stop: OBS finalizes the file, then Output.Stopped
+                        // VPULSE-initiated graceful stop: OBS finalizes the file, then Output.Stopped
                         // fires with ObsOutputStopCode.Success and is ignored by OnOutputStopped.
                         await StopRecording();
                     }
@@ -2597,7 +2597,7 @@ namespace Segra.Backend.Recorder
             // its waiter doesn't sit out the backstop. If OBS still completes the file during
             // disposal, the orphaned-file recovery scan picks it up. Disposing the output also
             // joins any in-flight mux thread, so nothing stays unresolved on the OBS side.
-            FailActiveReplaySave("The recording stopped before the replay finished saving. If the file completed, it can be recovered when Segra restarts.");
+            FailActiveReplaySave("The recording stopped before the replay finished saving. If the file completed, it can be recovered when VPULSE restarts.");
             lock (_replaySaveLock)
                 _previousSaveIndeterminate = false;
 
@@ -2619,8 +2619,8 @@ namespace Segra.Backend.Recorder
         {
             try
             {
-                // SEGRA_OBS_VERSIONS_URL overrides the endpoint (useful for staging / local testing).
-                string url = Environment.GetEnvironmentVariable("SEGRA_OBS_VERSIONS_URL") ?? ObsVersionsUrl;
+                // VPULSE_OBS_VERSIONS_URL overrides the endpoint (useful for staging / local testing).
+                string url = Environment.GetEnvironmentVariable("VPULSE_OBS_VERSIONS_URL") ?? ObsVersionsUrl;
                 List<Core.Models.OBSVersion>? response = null;
                 using (HttpClient client = new())
                 {
@@ -2646,10 +2646,10 @@ namespace Segra.Backend.Recorder
                     }
                 }
 
-                // Filter versions based on current Segra version compatibility
+                // Filter versions based on current VPULSE version compatibility
                 if (response != null && response.Count > 0)
                 {
-                    // Get the current Segra version
+                    // Get the current VPULSE version
                     NuGet.Versioning.SemanticVersion currentVersion = UpdateService.GetCurrentVersion();
 
                     // Filter to only compatible versions
@@ -2669,7 +2669,7 @@ namespace Segra.Backend.Recorder
                         return supportsFrom && supportsTo;
                     }).ToList();
 
-                    Log.Information($"Compatible OBS versions for Segra {currentVersion}: {string.Join(", ", compatibleVersions.Select(v => v.Version))}");
+                    Log.Information($"Compatible OBS versions for VPULSE {currentVersion}: {string.Join(", ", compatibleVersions.Select(v => v.Version))}");
                     response = compatibleVersions;
                 }
 
@@ -2687,10 +2687,10 @@ namespace Segra.Backend.Recorder
 #if WINDOWS
             return File.Exists(Path.Combine(baseDir, "obs.dll"));
 #else
-            // The launcher / re-exec resolves a runtime and exports SEGRA_OBS_DATA_PATH when it
+            // The launcher / re-exec resolves a runtime and exports VPULSE_OBS_DATA_PATH when it
             // succeeds; treat that as installed. Otherwise detect a downloaded bundle, a bundled
             // libobs, or a system obs-studio install.
-            string? dataPath = Environment.GetEnvironmentVariable("SEGRA_OBS_DATA_PATH");
+            string? dataPath = Environment.GetEnvironmentVariable("VPULSE_OBS_DATA_PATH");
             if (!string.IsNullOrEmpty(dataPath) && Directory.Exists(dataPath))
                 return true;
 
@@ -2736,7 +2736,7 @@ namespace Segra.Backend.Recorder
 
             Log.Information($"Downloading Linux OBS runtime {versionToDownload.Version} from {url}");
 
-            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra");
+            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE");
             Directory.CreateDirectory(appDataDir);
             bool isZip = url.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
             string archivePath = Path.Combine(appDataDir, isZip ? "obs-linux-download.zip" : "obs-linux-download.tar.gz");
@@ -2793,7 +2793,7 @@ namespace Segra.Backend.Recorder
             }
 
             Log.Information($"Linux OBS runtime ready at {dest}; restarting to apply.");
-            await ShowModal("Recorder ready", "The recorder finished downloading. Segra will restart to apply it.", "info");
+            await ShowModal("Recorder ready", "The recorder finished downloading. VPULSE will restart to apply it.", "info");
             await Task.Delay(500);
 
             // Re-exec so LD_LIBRARY_PATH / PATH / GStreamer plugin path pick up the new runtime.
@@ -2863,11 +2863,11 @@ namespace Segra.Backend.Recorder
 #else
             if (isUpdate)
             {
-                // We need to reinstall the Segra app to apply the update, because all OBS resources are placed in the app directory
+                // We need to reinstall the VPULSE app to apply the update, because all OBS resources are placed in the app directory
                 Settings.Instance.PendingOBSUpdate = true;
                 SettingsService.SaveSettings();
                 await UpdateService.ForceReinstallCurrentVersionAsync();
-                await ShowModal("OBS Update", "Please restart Segra to apply the update.");
+                await ShowModal("OBS Update", "Please restart VPULSE to apply the update.");
                 return;
             }
 
@@ -2884,7 +2884,7 @@ namespace Segra.Backend.Recorder
             string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             // Store obs.zip and hash in AppData to preserve them across updates
-            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra");
+            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE");
             Directory.CreateDirectory(appDataDir); // Ensure directory exists
 
             string zipPath = Path.Combine(appDataDir, "obs.zip");
@@ -3041,7 +3041,7 @@ namespace Segra.Backend.Recorder
         // Windows OBS zip download and the Linux runtime download.
         private static async Task<GitHubFileMetadata> FetchGitHubFileMetadataAsync(HttpClient client, string metadataUrl, string versionLabel)
         {
-            client.DefaultRequestHeaders.UserAgent.TryParseAdd("Segra");
+            client.DefaultRequestHeaders.UserAgent.TryParseAdd("VPULSE");
             client.DefaultRequestHeaders.Accept.TryParseAdd("application/vnd.github.v3.json");
 
             Log.Information($"Fetching metadata for OBS version {versionLabel} from {metadataUrl}");

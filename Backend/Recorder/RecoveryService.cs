@@ -1,13 +1,13 @@
 using Serilog;
 using System.Text.Json;
-using Segra.Backend.App;
-using Segra.Backend.Core;
-using Segra.Backend.Media;
-using Segra.Backend.Shared;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Windows.Storage;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core;
+using VPULSE.Backend.Media;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Windows.Storage;
 
-namespace Segra.Backend.Recorder
+namespace VPULSE.Backend.Recorder
 {
     internal class RecoveryService
     {

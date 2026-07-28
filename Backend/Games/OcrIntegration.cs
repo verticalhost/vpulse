@@ -1,13 +1,13 @@
 using Serilog;
 using System.Drawing;
-using Segra.Backend.Recorder;
+using VPULSE.Backend.Recorder;
 using System.Drawing.Imaging;
 using global::Windows.Media.Ocr;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 using System.Runtime.InteropServices;
 using global::Windows.Graphics.Imaging;
 
-namespace Segra.Backend.Games
+namespace VPULSE.Backend.Games
 {
     /// <summary>
     /// Base class for game integrations that use OCR to detect on-screen events.

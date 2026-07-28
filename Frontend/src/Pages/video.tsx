@@ -378,23 +378,23 @@ export default function VideoComponent({ video }: { video: Content }) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [showNoSegmentsIndicator, setShowNoSegmentsIndicator] = useState(false);
   const [clipOutputMode, setClipOutputMode] = useState<'combined' | 'separate'>(() => {
-    const saved = localStorage.getItem('segra-clip-output-mode');
+    const saved = localStorage.getItem('vpulse-clip-output-mode');
     return saved === 'separate' ? 'separate' : 'combined';
   });
   const [volume, setVolume] = useState(() => {
     // Initialize volume from localStorage or default to 1
-    const savedVolume = localStorage.getItem('segra-volume');
+    const savedVolume = localStorage.getItem('vpulse-volume');
     return savedVolume ? parseFloat(savedVolume) : 1;
   });
   const [isMuted, setIsMuted] = useState(() => {
     // Initialize muted state from localStorage or default to false
-    return localStorage.getItem('segra-muted') === 'true';
+    return localStorage.getItem('vpulse-muted') === 'true';
   });
   useEffect(() => {
-    localStorage.setItem('segra-clip-output-mode', clipOutputMode);
+    localStorage.setItem('vpulse-clip-output-mode', clipOutputMode);
   }, [clipOutputMode]);
   const [playbackRate, setPlaybackRate] = useState(() => {
-    const saved = localStorage.getItem('segra-playbackRate');
+    const saved = localStorage.getItem('vpulse-playbackRate');
     return saved ? parseFloat(saved) : 1;
   });
   const [controlsVisible, setControlsVisible] = useState(false);
@@ -533,8 +533,8 @@ export default function VideoComponent({ video }: { video: Content }) {
         setIsMuted(vid.muted);
 
         // Save to localStorage when volume changes
-        localStorage.setItem('segra-volume', vid.volume.toString());
-        localStorage.setItem('segra-muted', vid.muted.toString());
+        localStorage.setItem('vpulse-volume', vid.volume.toString());
+        localStorage.setItem('vpulse-muted', vid.muted.toString());
       }
     };
 
@@ -542,7 +542,7 @@ export default function VideoComponent({ video }: { video: Content }) {
       if (vid) {
         const r = vid.playbackRate || 1;
         setPlaybackRate(r);
-        localStorage.setItem('segra-playbackRate', r.toString());
+        localStorage.setItem('vpulse-playbackRate', r.toString());
       }
     };
 
@@ -648,8 +648,8 @@ export default function VideoComponent({ video }: { video: Content }) {
   useEffect(() => {
     if (audioTracks.isMultiTrack) {
       // Sync master mute/volume from saved state when entering multi-track
-      audioTracks.setMasterMuted(localStorage.getItem('segra-muted') === 'true');
-      const savedVol = localStorage.getItem('segra-volume');
+      audioTracks.setMasterMuted(localStorage.getItem('vpulse-muted') === 'true');
+      const savedVol = localStorage.getItem('vpulse-volume');
       audioTracks.setMasterVolume(savedVol ? parseFloat(savedVol) : 1);
     } else {
       audioTracks.setMuteOverride(null);
@@ -967,8 +967,8 @@ export default function VideoComponent({ video }: { video: Content }) {
       nextMuted = el.muted;
     }
     setVolume(target);
-    localStorage.setItem('segra-volume', target.toString());
-    localStorage.setItem('segra-muted', nextMuted.toString());
+    localStorage.setItem('vpulse-volume', target.toString());
+    localStorage.setItem('vpulse-muted', nextMuted.toString());
   };
 
   // Pointer handlers for panning the video when zoomed
@@ -1657,14 +1657,14 @@ export default function VideoComponent({ video }: { video: Content }) {
         const newMuted = !audioTracks.masterMuted;
         audioTracks.setMasterMuted(newMuted);
         setIsMuted(newMuted);
-        localStorage.setItem('segra-muted', newMuted.toString());
+        localStorage.setItem('vpulse-muted', newMuted.toString());
         return;
       }
 
       const newMutedState = !videoRef.current.muted;
       videoRef.current.muted = newMutedState;
       setIsMuted(newMutedState);
-      localStorage.setItem('segra-muted', newMutedState.toString());
+      localStorage.setItem('vpulse-muted', newMutedState.toString());
     }
   };
 
@@ -1672,7 +1672,7 @@ export default function VideoComponent({ video }: { video: Content }) {
     const r = Math.max(0.25, Math.min(2, rate));
     if (videoRef.current) videoRef.current.playbackRate = r;
     setPlaybackRate(r);
-    localStorage.setItem('segra-playbackRate', r.toString());
+    localStorage.setItem('vpulse-playbackRate', r.toString());
   };
 
   return (

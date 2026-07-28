@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Segra.Backend.Media
+namespace VPULSE.Backend.Media
 {
     public class FFmpegException : Exception
     {
@@ -50,23 +50,23 @@ namespace Segra.Backend.Media
         public const int AVERROR_HTTP_SERVER_ERROR = -(0xF8 | ('5' << 8) | ('X' << 16) | ('X' << 24));
 
         private const string BugReportSuffix =
-            "\n\nThis is likely a bug. Please report it on our Discord or on GitHub:\nhttps://github.com/Segergren/Segra/issues";
+            "\n\nThis is likely a bug. Please report it on our Discord or on GitHub:\nhttps://github.com/verticalhost/vpulse/issues";
 
         public static (string Message, bool LikelyBug) Describe(int exitCode)
         {
             return exitCode switch
             {
                 // POSIX errno (AVERROR(errno) = -errno)
-                -1 => ("Segra was not permitted to perform the operation.", false),
+                -1 => ("VPULSE was not permitted to perform the operation.", false),
                 -2 => ("A required file could not be found. It may have been moved or deleted while the operation was running.", false),
                 -5 => ("A read or write error occurred while accessing your drive.", false),
                 -11 => ("The system was temporarily busy. Please try again in a moment.", false),
-                -12 => ("Segra ran out of memory while processing the video.", false),
+                -12 => ("VPULSE ran out of memory while processing the video.", false),
                 -13 => ("Access to a file was denied. It may be locked by another program (e.g. antivirus or a video player).", false),
                 -16 => ("A file could not be accessed because it is currently in use by another program.", false),
                 -17 => ("An existing file was in the way and could not be replaced.", false),
                 -22 => ("The video could not be processed. The source file may be corrupted or in an unsupported format.", false),
-                -24 => ("Too many files are open. Please restart Segra and try again.", false),
+                -24 => ("Too many files are open. Please restart VPULSE and try again.", false),
                 -28 => ("Ran out of disk space while writing temporary files. Free up space on your system drive (C:) and try again.", false),
                 -30 => ("The output destination is read-only and cannot be written to.", false),
                 -32 => ("The video processing tool was closed unexpectedly before finishing.", false),

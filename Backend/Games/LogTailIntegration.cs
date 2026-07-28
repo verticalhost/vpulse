@@ -1,7 +1,7 @@
 using Serilog;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Games
+namespace VPULSE.Backend.Games
 {
     /// <summary>
     /// Base class for game integrations that detect events by tailing a single log file.

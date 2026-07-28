@@ -1,7 +1,7 @@
 using Serilog;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Games.Rust
+namespace VPULSE.Backend.Games.Rust
 {
     internal class RustIntegration : LogTailIntegration
     {

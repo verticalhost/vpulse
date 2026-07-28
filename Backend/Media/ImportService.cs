@@ -1,12 +1,12 @@
 using Serilog;
 using System.Text.Json;
-using Segra.Backend.App;
-using Segra.Backend.Core;
-using Segra.Backend.Shared;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Windows.Storage;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Windows.Storage;
 
-namespace Segra.Backend.Media
+namespace VPULSE.Backend.Media
 {
     public static class ImportService
     {

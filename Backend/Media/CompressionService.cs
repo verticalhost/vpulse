@@ -1,10 +1,10 @@
 using Serilog;
-using Segra.Backend.App;
-using Segra.Backend.Core;
-using Segra.Backend.Shared;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Media
+namespace VPULSE.Backend.Media
 {
     internal static class CompressionService
     {

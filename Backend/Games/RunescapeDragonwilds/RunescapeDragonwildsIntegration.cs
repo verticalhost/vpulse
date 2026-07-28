@@ -1,7 +1,7 @@
 using Serilog;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Games.RunescapeDragonwilds
+namespace VPULSE.Backend.Games.RunescapeDragonwilds
 {
     internal class RunescapeDragonwildsIntegration : LogTailIntegration
     {

@@ -1,6 +1,6 @@
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Platform
+namespace VPULSE.Backend.Platform
 {
     /// <summary>
     /// A disposable watcher that raises <see cref="Changed"/> when the watched system

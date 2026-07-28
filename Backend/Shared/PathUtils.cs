@@ -1,4 +1,4 @@
-namespace Segra.Backend.Shared
+namespace VPULSE.Backend.Shared
 {
     public static class PathUtils
     {

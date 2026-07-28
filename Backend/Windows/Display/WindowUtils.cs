@@ -1,12 +1,12 @@
 using Serilog;
 using System.Text;
-using Segra.Backend.Core;
+using VPULSE.Backend.Core;
 using System.Diagnostics;
-using Segra.Backend.Recorder;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Recorder;
+using VPULSE.Backend.Core.Models;
 using System.Runtime.InteropServices;
 
-namespace Segra.Backend.Windows.Display
+namespace VPULSE.Backend.Windows.Display
 {
     public static class WindowUtils
     {

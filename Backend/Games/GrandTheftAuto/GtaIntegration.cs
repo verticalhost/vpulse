@@ -1,6 +1,6 @@
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Games.GrandTheftAuto
+namespace VPULSE.Backend.Games.GrandTheftAuto
 {
     internal class GtaIntegration : OcrIntegration
     {

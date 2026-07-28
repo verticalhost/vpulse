@@ -1,4 +1,4 @@
-namespace Segra.Backend.App;
+namespace VPULSE.Backend.App;
 
 internal enum NotifyIconState
 {

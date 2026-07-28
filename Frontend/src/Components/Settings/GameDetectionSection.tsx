@@ -271,7 +271,7 @@ export default function GameDetectionSection() {
     <div className="p-4 bg-base-300 rounded-lg shadow-md border border-custom">
       <h2 className="text-xl font-semibold mb-2">Game Recording &amp; Overrides</h2>
       <p className="text-sm opacity-80 mb-4">
-        Add a game here to force Segra to record it (or stop it from recording), and optionally
+        Add a game here to force VPULSE to record it (or stop it from recording), and optionally
         override your recording settings for that game. Most games are detected automatically, so
         add one only if it isn&apos;t being recorded, or when you want different settings for it.
       </p>
@@ -339,7 +339,7 @@ export default function GameDetectionSection() {
 
       {games.length === 0 ? (
         <div className="bg-base-200 rounded-lg border border-base-400 text-center text-gray-500 py-10">
-          No custom games yet. Search for a game above to customize how Segra records it.
+          No custom games yet. Search for a game above to customize how VPULSE records it.
         </div>
       ) : (
         <>

@@ -2,12 +2,12 @@ using Serilog;
 using System.Linq;
 using System.Reflection;
 using System.Diagnostics;
-using Segra.Backend.Recorder;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Windows.Storage;
+using VPULSE.Backend.Recorder;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Windows.Storage;
 using System.Runtime.InteropServices;
 
-namespace Segra.Backend.App
+namespace VPULSE.Backend.App
 {
     internal static class DiagnosticsService
     {

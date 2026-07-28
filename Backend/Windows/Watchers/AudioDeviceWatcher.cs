@@ -1,7 +1,7 @@
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 
-namespace Segra.Backend.Windows.Watchers
+namespace VPULSE.Backend.Windows.Watchers
 {
     public class AudioDeviceWatcher : IMMNotificationClient, IDisposable
     {

@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "segra-repo-tools",
+      "name": "vpulse-repo-tools",
       "devDependencies": {
         "husky": "^9.1.7",
         "lint-staged": "^17.0.4",

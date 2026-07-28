@@ -1,10 +1,10 @@
 using Serilog;
 using System.Text;
 using System.Text.Json;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 using System.Text.Json.Serialization;
 
-namespace Segra.Backend.Games.Pubg
+namespace VPULSE.Backend.Games.Pubg
 {
     internal partial class PubgIntegration : Integration, IDisposable
     {

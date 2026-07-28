@@ -1,7 +1,7 @@
 using Serilog;
 using System.Runtime.InteropServices;
 
-namespace Segra.Backend.Windows.Display
+namespace VPULSE.Backend.Windows.Display
 {
     /// <summary>
     /// Detects whether a Windows display is currently in HDR mode, using the Win32 DisplayConfig API.

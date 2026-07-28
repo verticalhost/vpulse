@@ -1,7 +1,7 @@
 using Serilog;
 using System.Diagnostics;
 
-namespace Segra.Backend.Platform.Linux
+namespace VPULSE.Backend.Platform.Linux
 {
     // Reads host process state via flatpak-spawn, since our /proc only lists our own PID namespace.
     internal static class FlatpakHost
@@ -12,9 +12,9 @@ namespace Segra.Backend.Platform.Linux
 
         /// <summary>The app id we run as, used to build the host `flatpak run` command line.</summary>
         public static string AppId { get; } =
-            Environment.GetEnvironmentVariable("FLATPAK_ID") ?? "tv.segra.Segra";
+            Environment.GetEnvironmentVariable("FLATPAK_ID") ?? "tv.vpulse.VPULSE";
 
-        // Pin to the user's home: flatpak-spawn runs in the caller's cwd, and /app/segra doesn't exist on the host.
+        // Pin to the user's home: flatpak-spawn runs in the caller's cwd, and /app/vpulse doesn't exist on the host.
         public static string DirectoryArg { get; } = "--directory=" +
             (Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) is { Length: > 0 } home ? home : "/");
 

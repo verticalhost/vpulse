@@ -2,7 +2,7 @@ using Serilog;
 using System.Text;
 using System.Text.Json;
 
-namespace Segra.Backend.Auth
+namespace VPULSE.Backend.Auth
 {
     public static class AuthService
     {

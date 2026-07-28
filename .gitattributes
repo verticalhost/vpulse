@@ -65,7 +65,7 @@ Obs/*.tar.gz filter=lfs diff=lfs merge=lfs -text
 *.sh text eol=lf
 packaging/linux/postinst text eol=lf
 packaging/linux/postrm text eol=lf
-packaging/linux/segra.desktop text eol=lf
+packaging/linux/vpulse.desktop text eol=lf
 packaging/linux/control.in text eol=lf
 # The apt signing key is binary; never line-ending-normalize it.
-packaging/linux/segra-archive-keyring.gpg binary
+packaging/linux/vpulse-archive-keyring.gpg binary

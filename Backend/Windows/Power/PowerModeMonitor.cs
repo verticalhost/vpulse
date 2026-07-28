@@ -1,7 +1,7 @@
 using Serilog;
 using Microsoft.Win32;
 
-namespace Segra.Backend.Windows.Power
+namespace VPULSE.Backend.Windows.Power
 {
     internal static class PowerModeMonitor
     {

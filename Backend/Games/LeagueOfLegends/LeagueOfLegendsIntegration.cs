@@ -1,8 +1,8 @@
 using Serilog;
 using System.Text.Json;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Games.LeagueOfLegends
+namespace VPULSE.Backend.Games.LeagueOfLegends
 {
     internal class LeagueOfLegendsIntegration : Integration, IDisposable
     {

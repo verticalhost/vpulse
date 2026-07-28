@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds the Linux OBS runtime bundle that Segra downloads at launch, from OBS Studio's OFFICIAL
+# Builds the Linux OBS runtime bundle that VPULSE downloads at launch, from OBS Studio's OFFICIAL
 # Ubuntu .deb published on GitHub releases.
 #
 #   ./Obs/build-linux-bundle.sh <obs-version> [ubuntu-base]
@@ -9,7 +9,7 @@
 # was built on. Building on 24.04 (glibc 2.39, FFmpeg 6) yields a bundle that loads on 24.04 LTS and
 # every newer release. Building on 26.04 (glibc 2.43, FFmpeg 7) produced a bundle that could not even
 # be dlopen'd on 24.04 — libobs referenced GLIBC_2.43 and libavcodec.so.62, neither present there.
-# Always target the OLDEST release Segra supports.
+# Always target the OLDEST release VPULSE supports.
 #
 # Outputs:
 #   Obs/OBS <version> linux.tar.gz          the runtime bundle (lib/ + obs-plugins/ + data/)

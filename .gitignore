@@ -173,7 +173,7 @@ DocProject/Help/html
 # Click-Once directory
 publish/
 
-# Packaging output (Velopack vpk on Windows, Segra.flatpak on Linux)
+# Packaging output (Velopack vpk on Windows, VPULSE.flatpak on Linux)
 output/
 
 # Flatpak build artifacts (build-flatpak.sh)

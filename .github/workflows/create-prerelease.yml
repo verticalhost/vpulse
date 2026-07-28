@@ -211,14 +211,14 @@ jobs:
         run: dotnet publish -c Release -f net10.0-windows10.0.19041.0 --self-contained -r win-x64 -o publish --no-restore -p:Version=${{ env.new_version }}
         shell: pwsh
 
-      - name: Upload Segra binaries for signing (Pass 1)
+      - name: Upload VPULSE binaries for signing (Pass 1)
         id: upload_unsigned_exe
         uses: actions/upload-artifact@v7
         with:
-          name: Segra-exe-unsigned
+          name: VPULSE-exe-unsigned
           path: |
-            ./publish/Segra.exe
-            ./publish/Segra.dll
+            ./publish/VPULSE.exe
+            ./publish/VPULSE.dll
           if-no-files-found: error
           retention-days: 1
 
@@ -232,7 +232,7 @@ jobs:
               -Body @{
                 token   = '${{ secrets.PUSHOVER_TOKEN }}'
                 user    = '${{ secrets.PUSHOVER_USER }}'
-                title   = 'Segra prerelease'
+                title   = 'VPULSE prerelease'
                 message = 'Packaging v${{ env.new_version }}'
               } | Out-Null
             Write-Host "Pushover notification sent"
@@ -240,12 +240,12 @@ jobs:
             Write-Warning "Pushover notification failed: $_"
           }
 
-      - name: Sign Segra.exe (Pass 1)
+      - name: Sign VPULSE.exe (Pass 1)
         uses: signpath/github-action-submit-signing-request@v2
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
-          project-slug: Segra
+          project-slug: VPULSE
           signing-policy-slug: release-signing
           artifact-configuration-slug: publish
           github-artifact-id: ${{ steps.upload_unsigned_exe.outputs.artifact-id }}
@@ -253,14 +253,14 @@ jobs:
           output-artifact-directory: ./publish
 
       - name: Package with vpk
-        run: vpk pack -u Segra -v ${{ env.new_version }} -p ./publish -e Segra.exe -o ./output --packTitle "Segra" --noPortable -i ./Resources/icon.ico -s ./Resources/splash.png --splashProgressColor "#fecb00" --framework webview2
+        run: vpk pack -u VPULSE -v ${{ env.new_version }} -p ./publish -e VPULSE.exe -o ./output --packTitle "VPULSE" --noPortable -i ./Resources/icon.ico -s ./Resources/splash.png --splashProgressColor "#fecb00" --framework webview2
         shell: pwsh
 
       - name: Upload Velopack output for signing (Pass 2)
         id: upload_unsigned_output
         uses: actions/upload-artifact@v7
         with:
-          name: Segra-output-unsigned
+          name: VPULSE-output-unsigned
           path: ./output
           if-no-files-found: error
           retention-days: 1
@@ -275,7 +275,7 @@ jobs:
               -Body @{
                 token   = '${{ secrets.PUSHOVER_TOKEN }}'
                 user    = '${{ secrets.PUSHOVER_USER }}'
-                title   = 'Segra prerelease'
+                title   = 'VPULSE prerelease'
                 message = 'Finalizing v${{ env.new_version }} installer'
               } | Out-Null
             Write-Host "Pushover notification sent"
@@ -288,7 +288,7 @@ jobs:
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
-          project-slug: Segra
+          project-slug: VPULSE
           signing-policy-slug: release-signing
           artifact-configuration-slug: output
           github-artifact-id: ${{ steps.upload_unsigned_output.outputs.artifact-id }}
@@ -298,7 +298,7 @@ jobs:
       - name: Regenerate Velopack manifests
         shell: pwsh
         run: |
-          $nupkg = Get-ChildItem ./output/Segra-*-full.nupkg | Select-Object -First 1
+          $nupkg = Get-ChildItem ./output/VPULSE-*-full.nupkg | Select-Object -First 1
           if (-not $nupkg) { throw "No nupkg found in ./output" }
           $size = $nupkg.Length
           $sha1 = (Get-FileHash $nupkg.FullName -Algorithm SHA1).Hash.ToUpperInvariant()
@@ -335,7 +335,7 @@ jobs:
       - name: Upload Release Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: Segra
+          name: VPULSE
           path: ./output
           retention-days: 1
 
@@ -351,13 +351,13 @@ jobs:
       - name: Download Build Artifact (Windows)
         uses: actions/download-artifact@v8
         with:
-          name: Segra
+          name: VPULSE
 
       - name: Download Linux Build Artifact
         uses: actions/download-artifact@v8
         continue-on-error: true
         with:
-          name: Segra-Linux
+          name: VPULSE-Linux
           path: linux
 
       - name: Create GitHub Release (Pre-Release)
@@ -368,14 +368,14 @@ jobs:
           prerelease: true
           generate_release_notes: false
           files: |
-            ./Segra-win-Setup.exe
+            ./VPULSE-win-Setup.exe
             ./RELEASES
             ./releases.win.json
             ./assets.win.json
-            ./Segra-${{ needs.build.outputs.new_version }}-full.nupkg
-            ./linux/Segra.flatpak
-            ./linux/segra-*-x86_64.tar.gz
-            ./linux/segra-*-x86_64.tar.gz.sha256
+            ./VPULSE-${{ needs.build.outputs.new_version }}-full.nupkg
+            ./linux/VPULSE.flatpak
+            ./linux/vpulse-*-x86_64.tar.gz
+            ./linux/vpulse-*-x86_64.tar.gz.sha256
 
   # Linux Flatpak, built in parallel with Windows; continue-on-error so it never blocks that build.
   build_linux:
@@ -407,17 +407,17 @@ jobs:
           flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
 
       - name: Build Flatpak (OBS bundled)
-        run: SEGRA_VERSION=${{ needs.version.outputs.new_version }} ./build-flatpak.sh
+        run: VPULSE_VERSION=${{ needs.version.outputs.new_version }} ./build-flatpak.sh
 
       - name: Upload Linux build artifact
         # The tarball + sha256 feed the Flathub manifest; the .flatpak bundle is for direct installs.
         uses: actions/upload-artifact@v7
         with:
-          name: Segra-Linux
+          name: VPULSE-Linux
           path: |
-            ./output/Segra.flatpak
-            ./output/segra-*-x86_64.tar.gz
-            ./output/segra-*-x86_64.tar.gz.sha256
+            ./output/VPULSE.flatpak
+            ./output/vpulse-*-x86_64.tar.gz
+            ./output/vpulse-*-x86_64.tar.gz.sha256
           if-no-files-found: error
           retention-days: 1
 
@@ -430,7 +430,7 @@ jobs:
       - name: Download Build Artifact
         uses: actions/download-artifact@v8
         with:
-          name: Segra
+          name: VPULSE
 
       - name: Upload installer to VirusTotal
         shell: bash
@@ -438,7 +438,7 @@ jobs:
           VT_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
         run: |
           set -euo pipefail
-          FILE="./Segra-win-Setup.exe"
+          FILE="./VPULSE-win-Setup.exe"
           if [ -z "${VT_API_KEY:-}" ]; then
             echo "::warning::VIRUSTOTAL_API_KEY secret not set; skipping VirusTotal upload"
             exit 0

@@ -1,10 +1,10 @@
 using Serilog;
 using System.Diagnostics;
-using Segra.Backend.Media;
-using Segra.Backend.Shared;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Media;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Windows.Storage
+namespace VPULSE.Backend.Windows.Storage
 {
     internal class StorageService
     {

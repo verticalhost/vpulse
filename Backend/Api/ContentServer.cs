@@ -1,12 +1,12 @@
 using Serilog;
 using System.Net;
 using System.Web;
-using Segra.Backend.Auth;
-using Segra.Backend.Media;
-using Segra.Backend.Shared;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Auth;
+using VPULSE.Backend.Media;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Api
+namespace VPULSE.Backend.Api
 {
     internal class ContentServer
     {

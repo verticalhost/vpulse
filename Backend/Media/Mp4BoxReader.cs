@@ -1,11 +1,11 @@
 using Serilog;
 using System.Text;
 
-namespace Segra.Backend.Media
+namespace VPULSE.Backend.Media
 {
     /// <summary>
     /// Minimal ISO-BMFF (MP4) box reader used to extract per-track audio names
-    /// from Segra/OBS recordings. OBS writes each audio encoder's name into a
+    /// from VPULSE/OBS recordings. OBS writes each audio encoder's name into a
     /// custom `trak/udta/name` atom that FFmpeg's mov demuxer does not surface,
     /// so we walk the box tree ourselves.
     /// </summary>

@@ -1,8 +1,8 @@
 using Serilog;
-using Segra.Backend.App;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core.Models;
 
-namespace Segra.Backend.Media
+namespace VPULSE.Backend.Media
 {
     internal class AiService
     {

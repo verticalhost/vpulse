@@ -1,19 +1,19 @@
 using Serilog;
-using Segra.Backend.Games.Pubg;
-using Segra.Backend.Games.Rust;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Games.Dota2;
-using Segra.Backend.Games.Minecraft;
-using Segra.Backend.Games.WarThunder;
-using Segra.Backend.Games.CounterStrike2;
-using Segra.Backend.Games.LeagueOfLegends;
-using Segra.Backend.Games.RunescapeDragonwilds;
+using VPULSE.Backend.Games.Pubg;
+using VPULSE.Backend.Games.Rust;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Games.Dota2;
+using VPULSE.Backend.Games.Minecraft;
+using VPULSE.Backend.Games.WarThunder;
+using VPULSE.Backend.Games.CounterStrike2;
+using VPULSE.Backend.Games.LeagueOfLegends;
+using VPULSE.Backend.Games.RunescapeDragonwilds;
 #if WINDOWS
-using Segra.Backend.Games.RocketLeague;
-using Segra.Backend.Games.GrandTheftAuto;
+using VPULSE.Backend.Games.RocketLeague;
+using VPULSE.Backend.Games.GrandTheftAuto;
 #endif
 
-namespace Segra.Backend.Games
+namespace VPULSE.Backend.Games
 {
     public static class GameIntegrationService
     {

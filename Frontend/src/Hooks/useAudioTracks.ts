@@ -27,7 +27,7 @@ export interface AudioTrackState {
 }
 
 interface AudioTrackData {
-  segraIndex: number;
+  vpulseIndex: number;
   mp4TrackId: number;
   timescale: number;
   // AAC encoder priming (media_time from the edit list) in microseconds.
@@ -138,11 +138,11 @@ export function useAudioTracks(
     for (const td of trackDataRef.current.values()) {
       let muted: boolean;
       if (solo !== null) {
-        muted = td.segraIndex !== solo;
+        muted = td.vpulseIndex !== solo;
       } else {
-        muted = effectiveMuted.has(td.segraIndex);
+        muted = effectiveMuted.has(td.vpulseIndex);
       }
-      const vol = effectiveVolumes[td.segraIndex] ?? 1;
+      const vol = effectiveVolumes[td.vpulseIndex] ?? 1;
       td.gainNode.gain.setTargetAtTime(muted ? 0 : vol, now, 0.005);
     }
   }, []);
@@ -570,7 +570,7 @@ export function useAudioTracks(
         gain.connect(master);
 
         const td: AudioTrackData = {
-          segraIndex: i,
+          vpulseIndex: i,
           mp4TrackId: trk.id,
           timescale: trk.timescale,
           primingMicros: computePrimingMicros(trk.edits, trk.timescale),
@@ -723,7 +723,7 @@ export function useAudioTracks(
       vid.removeEventListener('ratechange', onRateChange);
       vid.removeEventListener('timeupdate', onTimeUpdate);
       stopAllSources();
-      vid.muted = localStorage.getItem('segra-muted') === 'true';
+      vid.muted = localStorage.getItem('vpulse-muted') === 'true';
     };
   }, [videoRef, isMultiTrack, resyncTo, stopAllSources, pumpDecoders]);
 
@@ -747,7 +747,7 @@ export function useAudioTracks(
       if (index === 0) {
         const next = new Set<number>();
         for (const td of trackDataRef.current.values()) {
-          if (td.segraIndex !== 0) next.add(td.segraIndex);
+          if (td.vpulseIndex !== 0) next.add(td.vpulseIndex);
         }
         return next;
       }

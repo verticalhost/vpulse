@@ -1,17 +1,17 @@
 using Serilog;
 using ObsKit.NET;
 using ObsKit.NET.Hotkeys;
-using Segra.Backend.App;
-using Segra.Backend.Platform;
-using Segra.Backend.Recorder;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Platform;
+using VPULSE.Backend.Recorder;
+using VPULSE.Backend.Core.Models;
 using ObsKit.NET.Native.Types;
 using ObsKeys = ObsKit.NET.Core.ObsKeys;
 
-namespace Segra.Backend.Windows.Input
+namespace VPULSE.Backend.Windows.Input
 {
     /// <summary>
-    /// Registers Segra's user-configurable keybindings as OBS hotkeys via ObsKit.NET.
+    /// Registers VPULSE's user-configurable keybindings as OBS hotkeys via ObsKit.NET.
     /// libobs polls global key state on its own background thread, so bound combinations
     /// fire system-wide with no OS hook of our own. Hotkeys can only be registered once
     /// OBS is initialized, so <see cref="Start"/> must be called from
@@ -78,7 +78,7 @@ namespace Segra.Backend.Windows.Input
 
                     try
                     {
-                        var hotkey = Obs.RegisterHotkey($"segra_{keybind.Action}", keybind.Action.ToString(), pressed =>
+                        var hotkey = Obs.RegisterHotkey($"vpulse_{keybind.Action}", keybind.Action.ToString(), pressed =>
                         {
                             if (pressed)
                                 HandleKeybindAction(keybind.Action);
@@ -96,7 +96,7 @@ namespace Segra.Backend.Windows.Input
 
         /// <summary>
         /// Converts a keybind's raw Win32 virtual-key codes into an OBS key combination.
-        /// Segra's keybind model allows any set of VK codes; ObsKeyCombination supports at
+        /// VPULSE's keybind model allows any set of VK codes; ObsKeyCombination supports at
         /// most one non-modifier key plus Ctrl/Alt/Shift/Win, so combinations with more than
         /// one non-modifier key are rejected (unsupported by design, not silently dropped).
         /// </summary>

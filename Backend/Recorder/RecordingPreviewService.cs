@@ -3,12 +3,12 @@ using ObsKit.NET;
 using System.Buffers;
 using System.Drawing;
 using ObsKit.NET.Video;
-using Segra.Backend.App;
+using VPULSE.Backend.App;
 using System.Drawing.Imaging;
 using ObsKit.NET.Native.Types;
 using System.Runtime.InteropServices;
 
-namespace Segra.Backend.Recorder
+namespace VPULSE.Backend.Recorder
 {
     /// <summary>
     /// Streams a low-resolution JPEG preview of the active OBS canvas to the frontend.

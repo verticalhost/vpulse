@@ -1,23 +1,23 @@
 using Serilog;
 using System.Text.Json;
-using Segra.Backend.App;
-using Segra.Backend.Media;
-using Segra.Backend.Shared;
-using Segra.Backend.Recorder;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Platform;
-using Segra.Backend.Windows.Input;
-using Segra.Backend.Windows.Storage;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Media;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Recorder;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Platform;
+using VPULSE.Backend.Windows.Input;
+using VPULSE.Backend.Windows.Storage;
 using System.Text.Json.Serialization;
 #if WINDOWS
-using Segra.Backend.Windows.GameMode;
+using VPULSE.Backend.Windows.GameMode;
 #endif
 
-namespace Segra.Backend.Core
+namespace VPULSE.Backend.Core
 {
     internal static class SettingsService
     {
-        public static readonly string SettingsFilePath = PathUtils.Normalize(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra", "settings.json"));
+        public static readonly string SettingsFilePath = PathUtils.Normalize(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE", "settings.json"));
 
         public static void SaveSettings(bool force = false)
         {

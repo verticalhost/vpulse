@@ -87,20 +87,20 @@ function migrateOldSupabaseSession(): AuthSession | null {
 }
 
 function loadSession(): AuthSession | null {
-  const access_token = localStorage.getItem('segra_access_token');
-  const refresh_token = localStorage.getItem('segra_refresh_token');
+  const access_token = localStorage.getItem('vpulse_access_token');
+  const refresh_token = localStorage.getItem('vpulse_refresh_token');
   if (access_token && refresh_token) return { access_token, refresh_token };
   return migrateOldSupabaseSession();
 }
 
 function saveSession(session: AuthSession) {
-  localStorage.setItem('segra_access_token', session.access_token);
-  localStorage.setItem('segra_refresh_token', session.refresh_token);
+  localStorage.setItem('vpulse_access_token', session.access_token);
+  localStorage.setItem('vpulse_refresh_token', session.refresh_token);
 }
 
 function clearAuth() {
-  localStorage.removeItem('segra_access_token');
-  localStorage.removeItem('segra_refresh_token');
+  localStorage.removeItem('vpulse_access_token');
+  localStorage.removeItem('vpulse_refresh_token');
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

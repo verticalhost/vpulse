@@ -1,11 +1,11 @@
 [Desktop Entry]
 Type=Application
-Name=Segra
+Name=VPULSE
 GenericName=Game Recorder
 Comment=Record and clip your gameplay
-Exec=segra %U
-Icon=tv.segra.Segra
+Exec=vpulse %U
+Icon=tv.vpulse.VPULSE
 Terminal=false
 Categories=AudioVideo;Recorder;
 Keywords=record;clip;gameplay;capture;screen;
-StartupWMClass=Segra
+StartupWMClass=VPULSE

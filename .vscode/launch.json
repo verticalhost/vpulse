@@ -11,7 +11,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net10.0-windows10.0.19041.0/Segra.exe",
+            "program": "${workspaceFolder}/bin/Debug/net10.0-windows10.0.19041.0/VPULSE.exe",
             "args": [],
             "cwd": "${workspaceFolder}/bin/Debug/net10.0-windows10.0.19041.0",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
@@ -19,7 +19,7 @@
             "internalConsoleOptions": "openOnSessionStart",
             "stopAtEntry": false,
             "env": {
-                "SEGRA_VSCODE": "1"
+                "VPULSE_VSCODE": "1"
             }
         }
     ]

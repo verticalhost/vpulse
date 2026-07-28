@@ -1,12 +1,12 @@
 using Serilog;
-using Segra.Backend.App;
-using Segra.Backend.Core;
-using Segra.Backend.Shared;
-using Segra.Backend.Platform;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Platform;
 using System.Text.Json.Serialization;
-using static Segra.Backend.Shared.GeneralUtils;
+using static VPULSE.Backend.Shared.GeneralUtils;
 
-namespace Segra.Backend.Core.Models
+namespace VPULSE.Backend.Core.Models
 {
     internal class AppState : IDisposable
     {

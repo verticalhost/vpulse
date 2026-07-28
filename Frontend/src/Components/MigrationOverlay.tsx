@@ -31,7 +31,7 @@ const MigrationOverlay: React.FC = () => {
         <div className="mb-6">
           <span className="loading loading-spinner loading-lg text-primary"></span>
         </div>
-        <h2 className="text-2xl font-bold mb-4">Updating Segra</h2>
+        <h2 className="text-2xl font-bold mb-4">Updating VPULSE</h2>
         <p className="text-base-content/70 mb-6">
           Preparing your content for the new version. Almost done!
         </p>

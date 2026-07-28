@@ -1,7 +1,7 @@
 using Serilog;
 using System.Reflection;
 
-namespace Segra.Backend.App
+namespace VPULSE.Backend.App
 {
     internal static class StartupService
     {
@@ -16,7 +16,7 @@ namespace Segra.Backend.App
                     return;
                 }
                 string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-                string linkPath = Path.Combine(startupFolder, "Segra.lnk");
+                string linkPath = Path.Combine(startupFolder, "VPULSE.lnk");
                 if (enable && !File.Exists(linkPath))
                 {
                     Type shellType = Type.GetTypeFromProgID("WScript.Shell")!;
@@ -32,12 +32,12 @@ namespace Segra.Backend.App
                     }
                     shortcut.GetType().InvokeMember("WorkingDirectory", BindingFlags.SetProperty, null, shortcut, new object[] { workingDir });
                     shortcut.GetType().InvokeMember("Save", BindingFlags.InvokeMethod, null, shortcut, null);
-                    Log.Information("Added Segra to startup");
+                    Log.Information("Added VPULSE to startup");
                 }
                 else if (!enable && File.Exists(linkPath))
                 {
                     File.Delete(linkPath);
-                    Log.Information("Removed Segra from startup");
+                    Log.Information("Removed VPULSE from startup");
                 }
             }
             catch (Exception ex)
@@ -50,7 +50,7 @@ namespace Segra.Backend.App
         {
             try
             {
-                string linkPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "Segra.lnk");
+                string linkPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "VPULSE.lnk");
                 return File.Exists(linkPath);
             }
             catch (Exception ex)

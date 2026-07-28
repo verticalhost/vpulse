@@ -1,12 +1,12 @@
 using Serilog;
-using Segra.Backend.App;
-using Segra.Backend.Core;
-using Segra.Backend.Shared;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core;
+using VPULSE.Backend.Shared;
 using System.Globalization;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Windows.Storage;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Windows.Storage;
 
-namespace Segra.Backend.Media
+namespace VPULSE.Backend.Media
 {
     /// <summary>
     /// Service for creating highlight videos from bookmarks using fast stream copy.

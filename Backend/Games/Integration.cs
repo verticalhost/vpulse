@@ -1,4 +1,4 @@
-namespace Segra.Backend.Games
+namespace VPULSE.Backend.Games
 {
     public abstract class Integration
     {

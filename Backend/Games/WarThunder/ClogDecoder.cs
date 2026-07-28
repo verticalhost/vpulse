@@ -1,7 +1,7 @@
 using Serilog;
 using System.Text;
 
-namespace Segra.Backend.Games.WarThunder
+namespace VPULSE.Backend.Games.WarThunder
 {
     internal static class ClogDecoder
     {

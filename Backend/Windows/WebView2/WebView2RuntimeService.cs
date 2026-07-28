@@ -1,7 +1,7 @@
 using Serilog;
 using Microsoft.Win32;
 
-namespace Segra.Backend.Windows.WebView2
+namespace VPULSE.Backend.Windows.WebView2
 {
     /// <summary>
     /// Logs the installed Microsoft Edge WebView2 runtime version at startup. Photino renders

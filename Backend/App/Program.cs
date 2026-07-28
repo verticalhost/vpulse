@@ -2,24 +2,24 @@ using Serilog;
 using Velopack;
 using Photino.NET;
 using System.IO.Pipes;
-using Segra.Backend.Api;
+using VPULSE.Backend.Api;
 using Photino.NET.Server;
-using Segra.Backend.Core;
+using VPULSE.Backend.Core;
 using System.Diagnostics;
 using System.Drawing;
-using Segra.Backend.Shared;
-using Segra.Backend.Platform;
-using Segra.Backend.Recorder;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Windows.Storage;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Platform;
+using VPULSE.Backend.Recorder;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Windows.Storage;
 using System.Runtime.InteropServices;
 #if WINDOWS
-using Segra.Backend.Windows.Power;
-using Segra.Backend.Windows.GameMode;
-using Segra.Backend.Windows.WebView2;
+using VPULSE.Backend.Windows.Power;
+using VPULSE.Backend.Windows.GameMode;
+using VPULSE.Backend.Windows.WebView2;
 #endif
 
-namespace Segra.Backend.App
+namespace VPULSE.Backend.App
 {
     class Program
     {
@@ -61,8 +61,8 @@ namespace Segra.Backend.App
         public static bool hasLoadedInitialSettings = false;
         public static PhotinoWindow? Window { get; private set; }
         private static readonly string LogFilePath =
-          Segra.Backend.Shared.PathUtils.Normalize(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra", "logs.log"));
-        private const string PipeName = "Segra_SingleInstance";
+          VPULSE.Backend.Shared.PathUtils.Normalize(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE", "logs.log"));
+        private const string PipeName = "VPULSE_SingleInstance";
         private static Mutex? singleInstanceMutex;
         private static Thread? pipeServerThread;
         private static string? appUrl;
@@ -81,11 +81,11 @@ namespace Segra.Backend.App
             SetProcessDPIAware();
 #else
             // Re-exec once with LD_LIBRARY_PATH set so libobs is loadable (never returns on first launch).
-            Segra.Backend.Platform.Linux.LinuxObsRuntime.ConfigureAndReexecIfNeeded();
+            VPULSE.Backend.Platform.Linux.LinuxObsRuntime.ConfigureAndReexecIfNeeded();
 #endif
 
             // Pin the working directory to the app directory so relative-path lookups
-            // (OBS modules, bundled ffmpeg.exe) resolve regardless of how Segra was launched.
+            // (OBS modules, bundled ffmpeg.exe) resolve regardless of how VPULSE was launched.
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
             // In debug mode, kill any existing instances before starting
@@ -110,7 +110,7 @@ namespace Segra.Backend.App
 #endif
 
             // Try to create a named mutex - this will fail if another instance exists
-            singleInstanceMutex = new Mutex(true, "SegraApplicationMutex", out bool createdNew);
+            singleInstanceMutex = new Mutex(true, "VPULSEApplicationMutex", out bool createdNew);
 
             if (!createdNew)
             {
@@ -161,11 +161,11 @@ namespace Segra.Backend.App
                         return;
                     }
                     Log.Information($"Updating from version {currentVersion} to {v}");
-                    File.WriteAllText(Path.Combine(Path.GetTempPath(), "segra.tmp"), currentVersion.ToString());
+                    File.WriteAllText(Path.Combine(Path.GetTempPath(), "vpulse.tmp"), currentVersion.ToString());
                 })
                 .OnAfterUpdateFastCallback((v) =>
                 {
-                    string previousVersionPath = Path.Combine(Path.GetTempPath(), "segra.tmp");
+                    string previousVersionPath = Path.Combine(Path.GetTempPath(), "vpulse.tmp");
                     if (File.Exists(previousVersionPath))
                     {
                         string previousVersion = File.ReadAllText(previousVersionPath);
@@ -180,7 +180,7 @@ namespace Segra.Backend.App
                 })
                 .OnFirstRun((v) =>
                 {
-                    Log.Information($"First run of Segra {v}");
+                    Log.Information($"First run of VPULSE {v}");
                 })
                 .Run();
 
@@ -192,10 +192,10 @@ namespace Segra.Backend.App
                 WebView2RuntimeService.LogRuntimeVersion();
 #endif
 
-                // VS Code sets SEGRA_VSCODE=1 via launch.json; Visual Studio does not.
+                // VS Code sets VPULSE_VSCODE=1 via launch.json; Visual Studio does not.
                 // In VS Code the Vite dev server runs separately, so PhotinoServer is not needed
                 // and its RunAsync() would otherwise open a spurious browser tab.
-                bool IsVSCodeDebug = Environment.GetEnvironmentVariable("SEGRA_VSCODE") == "1";
+                bool IsVSCodeDebug = Environment.GetEnvironmentVariable("VPULSE_VSCODE") == "1";
                 bool IsDebugMode = Debugger.IsAttached;
 
                 string baseUrl = string.Empty;
@@ -439,7 +439,7 @@ namespace Segra.Backend.App
         {
             try
             {
-                var logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra");
+                var logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE");
 
                 if (!Directory.Exists(logDirectory))
                     return;
@@ -607,7 +607,7 @@ namespace Segra.Backend.App
             Log.Information("Window variable has been set");
 
             // intentional space after name because of https://github.com/tryphotino/photino.NET/issues/106
-            Window.SetTitle("Segra ");
+            Window.SetTitle("VPULSE ");
 
             Window.RegisterWindowClosingHandler((sender, eventArgs) =>
             {

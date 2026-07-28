@@ -86,9 +86,9 @@ export default function AdvancedSection({
                 <span className="text-base-content">Updates</span>
               </div>
               <p className="text-sm text-gray-400 max-w-md">
-                Segra updates automatically through Flatpak. To update now, run{' '}
+                VPULSE updates automatically through Flatpak. To update now, run{' '}
                 <code className="px-1 py-0.5 rounded bg-base-200 text-gray-300">
-                  flatpak update tv.segra.Segra
+                  flatpak update tv.vpulse.VPULSE
                 </code>{' '}
                 or use your software center.
               </p>
@@ -186,7 +186,7 @@ export default function AdvancedSection({
             <span className="leading-none">View Logs</span>
           </Button>
           <div>
-            Segra{' '}
+            VPULSE{' '}
             {__APP_VERSION__ === 'Developer Preview' ? __APP_VERSION__ : 'v' + __APP_VERSION__}
           </div>
         </div>

@@ -3,11 +3,11 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
-using Segra.Backend.Api;
-using Segra.Backend.App;
-using Segra.Backend.Platform;
+using VPULSE.Backend.Api;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Platform;
 
-namespace Segra.Backend.Auth
+namespace VPULSE.Backend.Auth
 {
     // Discord sign-in runs in the default browser; segra.tv calls back to ContentServer with the session.
     internal static class DiscordLoginService
@@ -80,7 +80,7 @@ namespace Segra.Backend.Auth
             if (!accepted)
             {
                 Log.Warning("Discord login callback rejected: no matching pending login");
-                await RespondAsync(context, "Sign-in link expired", "Head back to Segra and start the Discord sign-in again.");
+                await RespondAsync(context, "Sign-in link expired", "Head back to VPULSE and start the Discord sign-in again.");
                 return;
             }
 
@@ -99,7 +99,7 @@ namespace Segra.Backend.Auth
                 accessToken,
                 refreshToken
             });
-            await RespondAsync(context, "You're signed in", "You can close this tab and return to Segra.");
+            await RespondAsync(context, "You're signed in", "You can close this tab and return to VPULSE.");
 
             Program.BringWindowToFront();
         }
@@ -145,7 +145,7 @@ namespace Segra.Backend.Auth
                 <head>
                   <meta charset="utf-8">
                   <meta name="viewport" content="width=device-width, initial-scale=1">
-                  <title>{{safeTitle}} - Segra</title>
+                  <title>{{safeTitle}} - VPULSE</title>
                   <style>
                     html, body { height: 100%; margin: 0; }
                     body {

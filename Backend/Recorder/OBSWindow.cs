@@ -1,4 +1,4 @@
-namespace Segra.Backend.Recorder
+namespace VPULSE.Backend.Recorder
 {
     internal class OBSWindow : Form
     {

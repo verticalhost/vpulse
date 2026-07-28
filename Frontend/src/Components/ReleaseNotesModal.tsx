@@ -106,7 +106,7 @@ interface ReleaseNotesModalProps {
   filterVersion: string | null;
 }
 
-const GITHUB_REPO_URL = 'https://github.com/Segergren/Segra';
+const GITHUB_REPO_URL = 'https://github.com/verticalhost/vpulse';
 
 function linkifyIssueReferences(text: string): string {
   return text.replace(/(?<!\[)#(\d+)/g, `[#$1](${GITHUB_REPO_URL}/issues/$1)`);
@@ -286,7 +286,7 @@ export default function ReleaseNotesModal({ onClose, filterVersion }: ReleaseNot
           <p className="text-sm text-gray-400 mt-0.5">
             {filterVersion
               ? `Updates since v${filterVersion}`
-              : 'Browse recent releases from Segra'}
+              : 'Browse recent releases from VPULSE'}
           </p>
         </div>
         <Button variant="ghost" icon size="sm" onClick={onClose} aria-label="Close">
@@ -308,7 +308,7 @@ export default function ReleaseNotesModal({ onClose, filterVersion }: ReleaseNot
             </h3>
             <p className="text-sm text-gray-400 max-w-sm">
               {filterVersion
-                ? 'You are on the latest version of Segra. Check back after the next release for new changes.'
+                ? 'You are on the latest version of VPULSE. Check back after the next release for new changes.'
                 : 'We could not find any release notes to display right now.'}
             </p>
           </div>

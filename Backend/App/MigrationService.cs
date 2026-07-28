@@ -1,18 +1,18 @@
 using Serilog;
 using System.Text.Json;
-using Segra.Backend.Core;
-using Segra.Backend.Media;
-using Segra.Backend.Shared;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Windows.Storage;
+using VPULSE.Backend.Core;
+using VPULSE.Backend.Media;
+using VPULSE.Backend.Shared;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Windows.Storage;
 
-namespace Segra.Backend.App;
+namespace VPULSE.Backend.App;
 
 internal static class MigrationService
 {
     private record Migration(string Id, Action Apply);
 
-    private static string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra");
+    private static string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE");
     private static string MigrationsFolder = Path.Combine(appDataDir, ".migrations");
     private static string AppliedPath => Path.Combine(MigrationsFolder, "applied.json");
 
@@ -692,7 +692,7 @@ internal static class MigrationService
             }
 
             // Update metadata files with new file paths
-            // Check BOTH old location (.metadata in content folder) AND new location (AppData/Segra/metadata)
+            // Check BOTH old location (.metadata in content folder) AND new location (AppData/VPULSE/metadata)
             int updatedCount = 0;
             var metadataLocations = new List<(string root, bool useLegacySubfolders)>
             {
@@ -780,7 +780,7 @@ internal static class MigrationService
     }
 
     // Migration 0008: Move metadata, thumbnails, and waveforms to AppData and make them visible
-    // .metadata, .thumbnails, .waveforms -> AppData/Roaming/Segra/metadata, thumbnails, waveforms
+    // .metadata, .thumbnails, .waveforms -> AppData/Roaming/VPULSE/metadata, thumbnails, waveforms
     private static void Apply_0008_MoveMetadataToAppData()
     {
         try

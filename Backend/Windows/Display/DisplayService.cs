@@ -1,10 +1,10 @@
 using Serilog;
 using System.Management;
-using Segra.Backend.Core.Models;
+using VPULSE.Backend.Core.Models;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
-namespace Segra.Backend.Windows.Display
+namespace VPULSE.Backend.Windows.Display
 {
     public static class DisplayService
     {

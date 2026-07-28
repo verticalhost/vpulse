@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Segra.Backend.Core.Models
+namespace VPULSE.Backend.Core.Models
 {
     // Last known main-window position, restored on next launch instead of centering
     // on the primary monitor. Backend-only; never surfaced in the settings UI.

@@ -110,7 +110,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     reconnectAttempts: Infinity,
     reconnectInterval: 3000,
     // The heartbeat closes the socket if no message arrives within `timeout`, and otherwise
-    // sends `message` every `interval`. Both run off a single setInterval. While the Segra
+    // sends `message` every `interval`. Both run off a single setInterval. While the VPULSE
     // window is backgrounded during gameplay, Chromium/WebView2 throttles timers to fire at
     // most about once every 60 seconds. `interval` must stay below that floor so each throttled
     // tick still emits a ping (which the backend answers, resetting the timeout), and `timeout`

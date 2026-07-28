@@ -1,15 +1,15 @@
 using Serilog;
 using System.Text.Json;
-using Segra.Backend.App;
-using Segra.Backend.Core;
-using Segra.Backend.Core.Models;
-using Segra.Backend.Media;
+using VPULSE.Backend.App;
+using VPULSE.Backend.Core;
+using VPULSE.Backend.Core.Models;
+using VPULSE.Backend.Media;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Segra.Backend.Games
+namespace VPULSE.Backend.Games
 {
     public static class GameUtils
     {
@@ -258,7 +258,7 @@ namespace Segra.Backend.Games
 
         private static void LoadGamesFromJson()
         {
-            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra");
+            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE");
             string jsonPath = Path.Combine(appDataDir, "games.json");
 
             if (!File.Exists(jsonPath))
@@ -313,7 +313,7 @@ namespace Segra.Backend.Games
 
         private static async Task DownloadBlacklistJsonIfNeededAsync()
         {
-            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra");
+            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE");
             Directory.CreateDirectory(appDataDir);
 
             string jsonPath = Path.Combine(appDataDir, "blacklist.json");
@@ -321,7 +321,7 @@ namespace Segra.Backend.Games
 
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All }))
             {
-                httpClient.DefaultRequestHeaders.Add("User-Agent", "Segra");
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "VPULSE");
 
                 try
                 {
@@ -386,7 +386,7 @@ namespace Segra.Backend.Games
 
         private static void LoadBlacklistFromJson()
         {
-            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra");
+            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE");
             string jsonPath = Path.Combine(appDataDir, "blacklist.json");
 
             if (!File.Exists(jsonPath))
@@ -410,7 +410,7 @@ namespace Segra.Backend.Games
 
         private static async Task DownloadGamesJsonIfNeededAsync()
         {
-            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra");
+            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE");
             Directory.CreateDirectory(appDataDir);
 
             string jsonPath = Path.Combine(appDataDir, "games.json");
@@ -418,7 +418,7 @@ namespace Segra.Backend.Games
 
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All }))
             {
-                httpClient.DefaultRequestHeaders.Add("User-Agent", "Segra");
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "VPULSE");
 
                 try
                 {

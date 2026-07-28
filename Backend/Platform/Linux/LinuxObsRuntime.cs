@@ -1,7 +1,7 @@
 using Serilog;
 using System.Runtime.InteropServices;
 
-namespace Segra.Backend.Platform.Linux
+namespace VPULSE.Backend.Platform.Linux
 {
     /// <summary>
     /// Resolves the OBS runtime on Linux (a bundled copy shipped with the app, or a system obs-studio
@@ -24,8 +24,8 @@ namespace Segra.Backend.Platform.Linux
             try
             {
                 // Already configured by a launcher (run.sh) or by our own prior re-exec.
-                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SEGRA_OBS_DATA_PATH"))
-                    || Environment.GetEnvironmentVariable("SEGRA_REEXEC") == "1")
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("VPULSE_OBS_DATA_PATH"))
+                    || Environment.GetEnvironmentVariable("VPULSE_REEXEC") == "1")
                     return;
 
                 var r = Resolve();
@@ -40,10 +40,10 @@ namespace Segra.Backend.Platform.Linux
                 string newLd = $"{r.LibDir}:{appDir}" + (existingLd.Length > 0 ? ":" + existingLd : "");
 
                 Environment.SetEnvironmentVariable("LD_LIBRARY_PATH", newLd);
-                Environment.SetEnvironmentVariable("SEGRA_OBS_MODULE_PATH", r.ModulePath);
-                Environment.SetEnvironmentVariable("SEGRA_OBS_MODULE_DATA_PATH", r.ModuleDataPath);
-                Environment.SetEnvironmentVariable("SEGRA_OBS_DATA_PATH", r.DataPath);
-                Environment.SetEnvironmentVariable("SEGRA_REEXEC", "1");
+                Environment.SetEnvironmentVariable("VPULSE_OBS_MODULE_PATH", r.ModulePath);
+                Environment.SetEnvironmentVariable("VPULSE_OBS_MODULE_DATA_PATH", r.ModuleDataPath);
+                Environment.SetEnvironmentVariable("VPULSE_OBS_DATA_PATH", r.DataPath);
+                Environment.SetEnvironmentVariable("VPULSE_REEXEC", "1");
 
                 // Bundled ffmpeg -> on PATH so FFmpegService (thumbnails/waveforms/clips) uses it
                 // instead of a system install.
@@ -103,7 +103,7 @@ namespace Segra.Backend.Platform.Linux
 
         // Directory where a downloaded Linux OBS/recorder bundle is extracted.
         internal static string DownloadedBundleDir() =>
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra", "obs");
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE", "obs");
 
         // Resolves the OBS runtime, or null if none is available.
         private static RuntimePaths? Resolve()
@@ -141,7 +141,7 @@ namespace Segra.Backend.Platform.Linux
                 return null;
 
             string runtime = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Segra", "obs-runtime");
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VPULSE", "obs-runtime");
             string rtLib = Path.Combine(runtime, "lib");
             string rtPlugins = Path.Combine(runtime, "obs-plugins");
 
