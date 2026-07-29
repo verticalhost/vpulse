@@ -768,6 +768,17 @@ namespace VPULSE.Backend.Recorder
                 return false;
             }
 
+            // While the user is live in their own OBS, let it record the session and skip VPULSE's
+            // pipeline entirely: no second capture, no second encoder. Everything below is
+            // untouched when they are not streaming. Falls through on refusal, so a misconfigured
+            // OBS costs a warning rather than a lost session.
+            if (StreamerModeService.ShouldRideObs
+                && StreamerModeService.BeginObsSessionAsync(name, exePath, pid).GetAwaiter().GetResult())
+            {
+                _isStoppingOrStopped = false;
+                return true;
+            }
+
             // Resolve global settings overlaid with any per-game overrides for this game.
             // Note: the static _activeEffectiveSettings is only published once the early-return guards
             // below have passed, so a blocked start attempt can never clobber an active recording's settings.
@@ -1644,6 +1655,13 @@ namespace VPULSE.Backend.Recorder
 
                 // Mark as stopping to prevent concurrent stop attempts
                 _isStoppingOrStopped = true;
+
+                // OBS owns this session's video, so none of the output teardown below applies.
+                if (StreamerModeService.IsRidingSession)
+                {
+                    await StreamerModeService.EndObsSessionAsync();
+                    return;
+                }
 
                 GeneralUtils.SetProcessPriority(ProcessPriorityClass.Normal);
 

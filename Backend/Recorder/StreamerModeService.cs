@@ -212,6 +212,114 @@ namespace VPULSE.Backend.Recorder
             }
         }
 
+        /// <summary>True while a session is being recorded by OBS rather than by VPULSE.</summary>
+        public static bool IsRidingSession { get; private set; }
+
+        /// <summary>
+        /// Records the session through OBS instead of VPULSE's own pipeline.
+        /// </summary>
+        /// <remarks>
+        /// Not the replay buffer: PUBG only writes its replay data at the end of a match, so kills
+        /// are discovered around two minutes after they happen — measured at 2m09s on a real match.
+        /// A 20-second buffer asked for that late holds the wrong footage entirely. Recording the
+        /// whole session and cutting by timestamp is what VPULSE already does well; this just uses
+        /// OBS's file. It costs nothing extra when the user streams with "same as stream" output,
+        /// because OBS then reuses the encoder the stream is already running.
+        /// </remarks>
+        public static async Task<bool> BeginObsSessionAsync(string game, string exePath, int? pid)
+        {
+            if (await _obs.RequestAsync("StartRecord") == null)
+            {
+                Log.Warning("OBS refused to start recording; falling back to VPULSE's own capture");
+                return false;
+            }
+
+            IsRidingSession = true;
+            AppState.Instance.Recording = new Recording
+            {
+                // Anchors every bookmark offset, so it must be when OBS actually began.
+                StartTime = DateTime.Now,
+                Game = game,
+                ExePath = exePath,
+                Pid = pid,
+                FilePath = null,
+                FileName = string.Empty,
+                CoverImageId = Games.GameUtils.GetCoverImageIdFromExePath(exePath),
+            };
+            AppState.Instance.PreRecording = null;
+
+            Log.Information("Recording {Game} through OBS; VPULSE is not encoding", game);
+            await MessageService.SendStateToFrontend("Streamer mode recording started");
+            return true;
+        }
+
+        /// <summary>Stops OBS's recording and files the result as a normal VPULSE session.</summary>
+        public static async Task EndObsSessionAsync()
+        {
+            var recording = AppState.Instance.Recording;
+            IsRidingSession = false;
+
+            var stopped = await _obs.RequestAsync("StopRecord");
+            string? obsPath = stopped is { } s && s.TryGetProperty("outputPath", out var p) ? p.GetString() : null;
+
+            AppState.Instance.Recording = null;
+            await MessageService.SendStateToFrontend("Streamer mode recording stopped");
+
+            if (recording == null || string.IsNullOrEmpty(obsPath))
+            {
+                Log.Warning("OBS did not return a recording path; nothing to import");
+                return;
+            }
+
+            try
+            {
+                for (int i = 0; i < 40 && !IsReady(obsPath); i++)
+                    await Task.Delay(500);
+
+                if (!IsReady(obsPath))
+                {
+                    Log.Warning("OBS recording never finished writing: {Path}", obsPath);
+                    return;
+                }
+
+                const Content.ContentType type = Content.ContentType.Session;
+                string game = string.IsNullOrWhiteSpace(recording.Game) ? "Unknown" : recording.Game;
+                string folder = PathUtils.Combine(
+                    Settings.Instance.ContentFolder,
+                    FolderNames.GetVideoFolderName(type),
+                    StorageService.SanitizeGameNameForFolder(game));
+                Directory.CreateDirectory(folder);
+
+                string target = PathUtils.Combine(folder,
+                    $"{recording.StartTime:yyyy-MM-dd_HH-mm-ss}{Path.GetExtension(obsPath)}");
+
+                // Move rather than copy: these files run to gigabytes, and OBS produced this one
+                // only because VPULSE asked it to.
+                File.Move(obsPath, target, overwrite: true);
+
+                // Carrying the bookmarks over is the whole point: the highlight and clip tools then
+                // work on this file exactly as they would on a session VPULSE recorded itself.
+                await ContentService.CreateMetadataFile(target, type, game, recording.Bookmarks,
+                    createdAt: recording.StartTime);
+                await ContentService.CreateThumbnail(target, type);
+                Log.Information("Filed OBS recording as a session with {Count} bookmarks: {Path}",
+                    recording.Bookmarks.Count, target);
+
+                try
+                {
+                    await SettingsService.LoadContentFromFolderIntoState(true);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning("Session filed, but refreshing the library failed: {Type}", ex.GetType().Name);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Could not file the OBS recording: {Type}: {Message}", ex.GetType().Name, ex.Message);
+            }
+        }
+
         public static void Disconnect() => _obs.Dispose();
 
         private static bool _lastReportedConnected;

@@ -1090,10 +1090,13 @@ namespace VPULSE.Backend.Core.Models
             }
             AppState.Instance.NotifyRecordingUpdated();
 
-            // While the user is live in their own OBS, ask it to keep this moment from the scene
-            // already on air. The clip then carries their overlays and camera, and no second
-            // encoder runs. StreamerModeService rate-limits, so bursts of kills stay sane.
-            if (bookmark.Type.IncludeInHighlight() && Recorder.StreamerModeService.ShouldRideObs)
+            // When OBS is recording the whole session, the bookmark is enough: the moment gets cut
+            // from that file afterwards. Only reach for the replay buffer when there is no session
+            // to cut from, and only for games whose events arrive live — PUBG's do not, they come
+            // minutes late with the match replay, by which time the buffer holds the wrong footage.
+            if (bookmark.Type.IncludeInHighlight()
+                && Recorder.StreamerModeService.ShouldRideObs
+                && !Recorder.StreamerModeService.IsRidingSession)
             {
                 _ = Recorder.StreamerModeService.SaveClipAsync(Game);
             }
