@@ -1,3 +1,4 @@
+using VPULSE.Backend.Auth;
 using Serilog;
 using System.Linq;
 using System.Reflection;
@@ -447,7 +448,9 @@ namespace VPULSE.Backend.App
         {
             Log.Information("--- Account & misc settings ---");
             var s = Settings.Instance;
-            Log.Information($"Logged in: {s.Auth.HasCredentials()}");
+            Log.Information($"VPZONE signed in: {OAuthTokenService.IsSignedIn(OAuthProviders.VPZone)}");
+            Log.Information($"Gamefolio linked: {OAuthTokenService.IsSignedIn(OAuthProviders.Gamefolio)}");
+            Log.Information($"VPZ+ active: {EntitlementService.IsActive}");
             Log.Information($"Enable AI: {s.EnableAi}");
             Log.Information($"Auto generate highlights: {s.AutoGenerateHighlights}");
             Log.Information($"Run on startup: {s.RunOnStartup}");

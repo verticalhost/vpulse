@@ -31,9 +31,7 @@ import { ScrollProvider } from './Context/ScrollContext';
 import { ModalProvider } from './Context/ModalContext';
 import { GeneralMessagesProvider } from './Context/GeneralMessagesContext';
 import MigrationOverlay from './Components/MigrationOverlay';
-import SetupProfileModal from './Components/SetupProfileModal';
 import { useAuth } from './Hooks/useAuth';
-import { useProfile } from './Hooks/useUserProfile';
 
 // Create a context for release notes that can be accessed globally
 export const ReleaseNotesContext = createContext<{
@@ -49,21 +47,18 @@ function App() {
     themeChange(false);
   }, []);
 
-  const { session, signOut } = useAuth();
-  const { data: profile } = useProfile();
+  const { vpzone, gamefolio, signOut } = useAuth();
 
   const { selectedVideo, setSelectedVideo } = useSelectedVideo();
   const { selectedMenu, setSelectedMenu } = useSelectedMenu();
   const settings = useSettings();
   const appState = useAppState();
-  const needsUsername = !settings.airplaneMode && session && profile?.username?.startsWith('user_');
-
   // Airplane mode hides all cloud features and must not keep a signed-in session.
   useEffect(() => {
-    if (settings.airplaneMode && session) {
-      signOut();
-    }
-  }, [settings.airplaneMode, session, signOut]);
+    if (!settings.airplaneMode) return;
+    if (vpzone.isSignedIn) signOut('vpzone');
+    if (gamefolio.isSignedIn) signOut('gamefolio');
+  }, [settings.airplaneMode, vpzone.isSignedIn, gamefolio.isSignedIn, signOut]);
 
   // If the current menu becomes hidden (and has no content keeping it visible),
   // fall back to the default (or first reachable item).
@@ -125,7 +120,6 @@ function App() {
 
   return (
     <div className="flex h-screen w-screen">
-      {needsUsername && <SetupProfileModal />}
       <div className="h-full">
         <Menu selectedMenu={selectedMenu} onSelectMenu={handleMenuSelection} />
       </div>

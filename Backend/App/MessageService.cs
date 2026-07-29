@@ -80,21 +80,6 @@ namespace VPULSE.Backend.App
                                 }
                             }
                             break;
-                        case "Login":
-                            root.TryGetProperty("Parameters", out JsonElement loginParameterElement);
-                            string accessToken = loginParameterElement.GetProperty("accessToken").GetString()!;
-                            string refreshToken = loginParameterElement.GetProperty("refreshToken").GetString()!;
-                            _ = Task.Run(() => AuthService.Login(accessToken, refreshToken));
-                            break;
-                        case "Logout":
-                            _ = Task.Run(AuthService.Logout);
-                            break;
-                        case "LoginWithDiscord":
-                            _ = Task.Run(DiscordLoginService.Begin);
-                            break;
-                        case "CancelDiscordLogin":
-                            DiscordLoginService.Cancel();
-                            break;
                         case "StartOAuthLogin":
                             if (ResolveProvider(root) is { } loginProvider)
                                 _ = Task.Run(() => OAuthLoginService.Begin(loginProvider));

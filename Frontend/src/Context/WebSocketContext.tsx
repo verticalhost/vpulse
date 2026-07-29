@@ -1,7 +1,6 @@
-import { createContext, useContext, ReactNode, useCallback, useEffect, useRef } from 'react';
+import { createContext, useContext, ReactNode, useCallback, useRef } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { sendMessageToBackend } from '../Utils/MessageUtils';
-import { useAuth } from '../Hooks/useAuth.tsx';
 import { setContentServerPort } from '../lib/contentServer';
 
 interface WebSocketContextType {
@@ -18,17 +17,10 @@ interface WebSocketMessage {
 }
 
 export function WebSocketProvider({ children }: { children: ReactNode }) {
-  // Get the auth session to properly handle authentication
-  const { session } = useAuth();
   // Ref to track if we've already handled a version mismatch (prevent multiple reloads)
   const versionCheckHandled = useRef(false);
   // Ref to track if this is a reconnection (not initial connection)
   const hasConnectedBefore = useRef(false);
-
-  // Log when the WebSocket provider mounts or session changes
-  useEffect(() => {
-    console.log('WebSocketProvider: Session state changed:', !!session);
-  }, [session]);
 
   // Configure WebSocket with reconnection and heartbeat
   // Keep in sync with MessageService.WebSocketPort on the backend.
@@ -42,16 +34,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         hasConnectedBefore.current = true;
       }
 
+      // The backend owns the sessions and answers NewConnection with the current AuthState,
+      // so there is nothing for the renderer to replay here.
       sendMessageToBackend('NewConnection');
-
-      // If we already have a session when connecting, ensure we're logged in
-      if (session) {
-        console.log('WebSocket connected with active session, ensuring login state');
-        sendMessageToBackend('Login', {
-          accessToken: session.access_token,
-          refreshToken: session.refresh_token,
-        });
-      }
     },
     onClose: (event) => {
       console.warn('WebSocket closed:', event.code, event.reason);

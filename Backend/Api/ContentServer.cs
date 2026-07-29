@@ -158,10 +158,6 @@ namespace VPULSE.Backend.Api
 
                     await OAuthLoginService.HandleCallbackAsync(provider, context);
                 }
-                else if (DiscordLoginService.IsCallbackPath(path))
-                {
-                    await DiscordLoginService.HandleCallbackAsync(context);
-                }
                 else
                 {
                     response.StatusCode = (int)HttpStatusCode.NotFound;

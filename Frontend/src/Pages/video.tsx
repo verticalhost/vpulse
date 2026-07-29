@@ -7,7 +7,6 @@ import { openFileLocation } from '../Utils/FileUtils';
 import { useSelectedVideo } from '../Context/SelectedVideoContext';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useAuth } from '../Hooks/useAuth.tsx';
 import { useSegments } from '../Context/SegmentsContext';
 import { useUploads } from '../Context/UploadContext';
 import { useModal } from '../Context/ModalContext';
@@ -198,7 +197,6 @@ export default function VideoComponent({ video }: { video: Content }) {
   const settings = useSettings();
   const appState = useAppState();
   const updateSettings = useSettingsUpdater();
-  const { session } = useAuth();
   const { uploads } = useUploads();
   const { openModal, closeModal } = useModal();
   const confirmDelete = useDeleteConfirmation();
@@ -1505,7 +1503,6 @@ export default function VideoComponent({ video }: { video: Content }) {
         onUpload={(title, description, visibility) => {
           const parameters = {
             FilePath: video.filePath,
-            JWT: session?.access_token,
             Game: video.game,
             Title: title,
             Description: description,

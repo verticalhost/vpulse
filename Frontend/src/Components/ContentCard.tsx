@@ -4,7 +4,6 @@ import { useAppState } from '../Context/AppStateContext';
 import { BookmarkType, Content, includeInHighlight } from '../Models/types';
 import { sendMessageToBackend } from '../Utils/MessageUtils';
 import { openFileLocation } from '../Utils/FileUtils';
-import { useAuth } from '../Hooks/useAuth.tsx';
 import { useModal } from '../Context/ModalContext';
 import UploadModal from './UploadModal';
 import {
@@ -58,7 +57,6 @@ export default function ContentCard({
 }: VideoCardProps) {
   const { enableAi, showNewBadgeOnVideos, airplaneMode } = useSettings();
   const { cacheFolder, content: allContent } = useAppState();
-  const { session } = useAuth();
   const { openModal, closeModal } = useModal();
   const { aiProgress } = useAiHighlights();
   const { compressionProgress, isCompressing } = useCompression();
@@ -268,7 +266,6 @@ export default function ContentCard({
         onUpload={(title, description, visibility) => {
           const parameters: any = {
             FilePath: content!.filePath,
-            JWT: session?.access_token,
             Game: content?.game,
             Title: title,
             Description: description,

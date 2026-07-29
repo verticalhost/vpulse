@@ -1,362 +1,227 @@
-import React, { useEffect, useState } from 'react';
-import { TriangleAlert, LogOut, Ellipsis, Mail, History } from 'lucide-react';
-import { DiscordIcon } from '../icons/BrandIcons';
-import discordLoading from '../../assets/discord-loading.webp';
-import { useAuth } from '../../Hooks/useAuth';
-import { useProfile } from '../../Hooks/useUserProfile';
+import { TriangleAlert, LogOut, Ellipsis, Sparkles, ExternalLink } from 'lucide-react';
+import { useAuth, ProviderName, ProviderAccount } from '../../Hooks/useAuth';
+import { sendMessageToBackend } from '../../Utils/MessageUtils';
 import Button from '../Button';
 
-type AuthTab = 'login' | 'register';
+const VPZONE_BILLING_URL = 'https://vpzone.tv/settings/membership';
 
-export default function AccountSection() {
-  const {
-    user,
-    session,
-    isAuthenticating,
-    isWaitingForDiscord,
-    authError,
-    clearAuthError,
-    login,
-    register,
-    loginWithDiscord,
-    cancelDiscordLogin,
-    signOut,
-  } = useAuth();
-  const { data: profile, error: profileError } = useProfile();
-  const [error, setError] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [tab, setTab] = useState<AuthTab>('login');
-  const [confirmEmailMessage, setConfirmEmailMessage] = useState('');
-  const [lastUsedMethod, setLastUsedMethod] = useState<'discord' | 'email' | null>(null);
+// Gamefolio's token endpoint rejects public clients, which a desktop app has to be: it demands a
+// client_secret, and a secret shipped in a published binary is not a secret. Publishing stays
+// visible but disabled until they support PKCE-only exchanges.
+const GAMEFOLIO_AVAILABLE = false;
 
-  useEffect(() => {
-    const lastMethod = localStorage.getItem('lastLoginMethod') as 'discord' | 'email' | null;
-    setLastUsedMethod(lastMethod);
-  }, []);
+function openExternal(url: string) {
+  sendMessageToBackend('OpenInBrowser', { Url: url });
+}
 
-  const handleDiscordLogin = () => {
-    setError('');
-    clearAuthError();
-    localStorage.setItem('lastLoginMethod', 'discord');
-    loginWithDiscord();
-  };
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    clearAuthError();
-    localStorage.setItem('lastLoginMethod', 'email');
-    await login(email, password);
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    clearAuthError();
-    setConfirmEmailMessage('');
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    const result = await register(email, password);
-    if (result?.confirmEmail) {
-      setConfirmEmailMessage('Check your email to confirm your account, then log in.');
-    }
-  };
-
-  const handleLogout = async () => {
-    signOut();
-  };
-
-  const displayError = error || authError;
-
-  if (!session) {
-    return (
-      <div className="p-4 bg-base-300 rounded-lg shadow-md border border-custom space-y-4">
-        {displayError && (
-          <div className="alert alert-error" role="alert">
-            <TriangleAlert className="w-5 h-5" />
-            <span>{displayError}</span>
-          </div>
-        )}
-
-        {confirmEmailMessage && (
-          <div className="alert alert-success" role="alert">
-            <span>{confirmEmailMessage}</span>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <div className="relative">
-            {lastUsedMethod === 'discord' && (
-              <div
-                className={`absolute -top-3 right-2 bg-base-300 px-2 py-0.5 rounded-full border border-custom shadow-sm transition-all duration-300 ${isAuthenticating || isWaitingForDiscord ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`}
-              >
-                <div className="flex items-center gap-1 text-xs font-medium text-yellow-400">
-                  <History className="w-3 h-3" />
-                  Last used
-                </div>
-              </div>
-            )}
-            <Button
-              variant="primary"
-              className="w-full gap-2 font-semibold text-white border-custom hover:border-custom"
-              onClick={handleDiscordLogin}
-              loading={isAuthenticating || isWaitingForDiscord}
-              loadingIcon={
-                isWaitingForDiscord ? (
-                  // 30px, not 20px: the frame fits the full swirl, so the resting logo fills ~2/3.
-                  <img
-                    src={discordLoading}
-                    alt=""
-                    aria-hidden="true"
-                    className="w-[30px] shrink-0"
-                  />
-                ) : undefined
-              }
-            >
-              {!isWaitingForDiscord && <DiscordIcon className="w-5 h-5" />}
-              {isWaitingForDiscord
-                ? 'Waiting for your browser...'
-                : isAuthenticating
-                  ? 'Connecting...'
-                  : 'Continue with Discord'}
-            </Button>
-          </div>
-
-          {isWaitingForDiscord && (
-            <p className="-mt-2 text-center text-xs text-gray-400">
-              Finish signing in with Discord in your browser.{' '}
-              <button
-                type="button"
-                className="underline underline-offset-2 hover:text-gray-200"
-                onClick={cancelDiscordLogin}
-              >
-                Cancel
-              </button>
-            </p>
-          )}
-
-          <div className="divider">Or Use Email</div>
-
-          {/* Tab toggle */}
-          <div className="tabs tabs-boxed justify-center">
-            <button
-              className={`tab ${tab === 'login' ? 'tab-active' : ''}`}
-              onClick={() => {
-                setTab('login');
-                setError('');
-                setConfirmEmailMessage('');
-              }}
-            >
-              Login
-            </button>
-            <button
-              className={`tab ${tab === 'register' ? 'tab-active' : ''}`}
-              onClick={() => {
-                setTab('register');
-                setError('');
-                setConfirmEmailMessage('');
-              }}
-            >
-              Register
-            </button>
-          </div>
-
-          {tab === 'login' ? (
-            <form onSubmit={handleEmailLogin} className="space-y-4">
-              <div className="form-control">
-                <div className="mb-2">Email</div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input input-bordered bg-base-200 w-full"
-                  disabled={isAuthenticating}
-                  placeholder="example@example.com"
-                  required
-                />
-              </div>
-
-              <div className="form-control">
-                <div className="mb-2">Password</div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input input-bordered bg-base-200 w-full"
-                  disabled={isAuthenticating}
-                  placeholder="********"
-                  required
-                />
-              </div>
-
-              <div className="relative">
-                {lastUsedMethod === 'email' && (
-                  <div
-                    className={`absolute -top-3 right-2 bg-base-300 px-2 py-0.5 rounded-full border border-custom shadow-sm transition-all duration-300 ${isAuthenticating ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`}
-                  >
-                    <div className="flex items-center gap-1 text-xs font-medium text-yellow-400">
-                      <History className="w-3 h-3" />
-                      Last used
-                    </div>
-                  </div>
-                )}
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="w-full font-semibold text-white border-custom hover:border-custom"
-                  loading={isAuthenticating}
-                >
-                  <Mail size={20} />
-                  Sign In with Email
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <form onSubmit={handleRegister} className="space-y-4">
-              <div className="form-control">
-                <div className="mb-2">Email</div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input input-bordered bg-base-200 w-full"
-                  disabled={isAuthenticating}
-                  placeholder="example@example.com"
-                  required
-                />
-              </div>
-
-              <div className="form-control">
-                <div className="mb-2">Password</div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input input-bordered bg-base-200 w-full"
-                  disabled={isAuthenticating}
-                  placeholder="********"
-                  required
-                />
-              </div>
-
-              <div className="form-control">
-                <div className="mb-2">Confirm Password</div>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="input input-bordered bg-base-200 w-full"
-                  disabled={isAuthenticating}
-                  placeholder="********"
-                  required
-                />
-              </div>
-
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full font-semibold text-white border-custom hover:border-custom"
-                loading={isAuthenticating}
-              >
-                <Mail size={20} />
-                Create Account
-              </Button>
-            </form>
-          )}
-        </div>
-      </div>
-    );
+function formatDate(iso: string | null): string | null {
+  if (!iso) return null;
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return null;
   }
+}
+
+function Avatar({ account }: { account: ProviderAccount }) {
+  return (
+    <div className="w-14 h-14 rounded-full overflow-hidden bg-base-200 shrink-0">
+      <img
+        src={account.avatarUrl || '/default-avatar.png'}
+        alt=""
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).src = '/default-avatar.png';
+        }}
+      />
+    </div>
+  );
+}
+
+function SignInError({ provider }: { provider: ProviderName }) {
+  const { signInStatus, clearSignInStatus } = useAuth();
+  const status = signInStatus[provider];
+  if (status !== 'failed' && status !== 'expired' && status !== 'unavailable') return null;
+
+  const message =
+    status === 'expired'
+      ? 'The sign-in link expired. Try again.'
+      : status === 'unavailable'
+        ? 'Sign-in is unavailable right now.'
+        : "Sign-in couldn't be completed.";
 
   return (
-    <div className="p-4 bg-base-300 rounded-lg shadow-md border border-custom">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-4 min-w-0">
-          {/* Avatar Container */}
-          <div className="relative w-16 h-16">
-            <div className="w-full h-full rounded-full overflow-hidden bg-base-200 ring-2 ring-base-300">
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={`${profile.username}'s avatar`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/default-avatar.png';
-                  }}
-                />
-              ) : (
-                <div
-                  className="w-full h-full bg-base-300 flex items-center justify-center"
-                  aria-hidden="true"
+    <div className="flex items-center gap-2 mt-3 text-sm text-error">
+      <TriangleAlert size={16} />
+      <span>{message}</span>
+      <button className="underline ml-auto" onClick={() => clearSignInStatus(provider)}>
+        Dismiss
+      </button>
+    </div>
+  );
+}
+
+export default function AccountSection() {
+  const { vpzone, gamefolio, vpzPlus, signInStatus, signIn, cancelSignIn, signOut } = useAuth();
+
+  const renewal = formatDate(vpzPlus.currentPeriodEnd);
+  const memberSince = formatDate(vpzPlus.since);
+
+  return (
+    <div className="space-y-8">
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-1">VPULSE account</h2>
+        <p className="text-sm text-gray-400 mb-4">
+          Sign in with VPZONE to sync your membership and unlock VPZ+ features.
+        </p>
+
+        <div className="bg-base-200 rounded-lg p-4">
+          {!vpzone.isSignedIn ? (
+            <>
+              <Button
+                className="w-full"
+                disabled={!vpzone.isConfigured || signInStatus.vpzone === 'waiting'}
+                onClick={() => signIn('vpzone')}
+              >
+                {signInStatus.vpzone === 'waiting'
+                  ? 'Waiting for your browser...'
+                  : 'Continue with VPZONE'}
+              </Button>
+
+              {signInStatus.vpzone === 'waiting' && (
+                <button
+                  className="text-sm text-gray-400 underline mt-3 w-full"
+                  onClick={() => cancelSignIn('vpzone')}
                 >
-                  <span className="text-2xl"></span>
-                </div>
+                  Cancel
+                </button>
               )}
+
+              {!vpzone.isConfigured && (
+                <p className="text-xs text-gray-500 mt-3">
+                  VPZONE sign-in isn't configured in this build yet.
+                </p>
+              )}
+
+              <SignInError provider="vpzone" />
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-4">
+                <Avatar account={vpzone} />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-semibold truncate">
+                      {vpzone.displayName || vpzone.username}
+                    </span>
+                    {vpzPlus.isActive && (
+                      <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
+                        <Sparkles size={12} />
+                        VPZ+
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-400 truncate">@{vpzone.username}</div>
+                </div>
+
+                <div className="dropdown dropdown-end ml-auto">
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-sm">
+                    <Ellipsis size={18} />
+                  </div>
+                  <ul
+                    tabIndex={0}
+                    className="dropdown-content menu bg-base-300 rounded-box z-10 w-44 p-2 shadow"
+                  >
+                    <li>
+                      <button onClick={() => signOut('vpzone')}>
+                        <LogOut size={16} />
+                        Sign out
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-base-400/50 text-sm">
+                {vpzPlus.isActive ? (
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="text-gray-400">
+                      {vpzPlus.cancelAtPeriodEnd && renewal
+                        ? `Ends ${renewal}`
+                        : renewal
+                          ? `Renews ${renewal}`
+                          : 'Active'}
+                      {memberSince && <span className="text-gray-500"> · member since {memberSince}</span>}
+                    </div>
+                    <button
+                      className="flex items-center gap-1 text-primary hover:underline shrink-0"
+                      onClick={() => openExternal(VPZONE_BILLING_URL)}
+                    >
+                      Manage
+                      <ExternalLink size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-gray-400">
+                      VPZ+ unlocks 1440p and 4K recording, longer replay buffers and automatic
+                      highlights.
+                    </span>
+                    <button
+                      className="flex items-center gap-1 text-primary hover:underline shrink-0"
+                      onClick={() => openExternal(VPZONE_BILLING_URL)}
+                    >
+                      Get VPZ+
+                      <ExternalLink size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-1">Connected services</h2>
+        <p className="text-sm text-gray-400 mb-4">
+          Publish clips to a service without leaving VPULSE.
+        </p>
+
+        <div className="bg-base-200 rounded-lg p-4 flex items-center gap-4">
+          <div className="min-w-0">
+            <div className="text-white font-semibold">Gamefolio</div>
+            <div className="text-sm text-gray-400 truncate">
+              {!GAMEFOLIO_AVAILABLE
+                ? 'Coming soon — clips stay on your PC for now.'
+                : gamefolio.isSignedIn
+                  ? `@${gamefolio.username}`
+                  : 'Publish clips and get a share link.'}
             </div>
           </div>
 
-          {/* Profile Info */}
-          <div className="min-w-0 flex-1">
-            <h3 className="font-bold truncate">
-              {profile?.username && !profile.username.startsWith('user_') ? (
-                profile.username
-              ) : (
-                <div className="skeleton h-[24px] w-24"></div>
-              )}
-            </h3>
-            <p className="text-sm opacity-70 truncate">{user?.email || 'Authenticated User'}</p>
-          </div>
-
-          {/* More Options Dropdown */}
-          <div className="dropdown">
-            <label
-              tabIndex={0}
-              className="btn btn-ghost btn-sm btn-circle hover:bg-white/10 active:bg-white/10"
-            >
-              <Ellipsis size={24} />
-            </label>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu bg-base-300 border border-base-400 rounded-box z-999 w-52 p-2"
-            >
-              <li>
-                <Button
-                  variant="menuDanger"
-                  onClick={() => {
-                    (document.activeElement as HTMLElement).blur();
-                    handleLogout();
-                  }}
-                >
-                  <LogOut size={20} />
-                  <span>Logout</span>
-                </Button>
-              </li>
-            </ul>
+          <div className="ml-auto shrink-0">
+            {!GAMEFOLIO_AVAILABLE ? (
+              <Button disabled>Coming soon</Button>
+            ) : gamefolio.isSignedIn ? (
+              <Button onClick={() => signOut('gamefolio')}>Disconnect</Button>
+            ) : (
+              <Button
+                disabled={!gamefolio.isConfigured || signInStatus.gamefolio === 'waiting'}
+                onClick={() => signIn('gamefolio')}
+              >
+                {signInStatus.gamefolio === 'waiting' ? 'Waiting...' : 'Connect'}
+              </Button>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Error State */}
-      {profileError && (
-        <div className="alert alert-error mt-3" role="alert" aria-live="assertive">
-          <TriangleAlert className="w-5 h-5" />
-          <div>
-            <h3 className="font-bold">Profile load failed!</h3>
-            <div className="text-xs">{profileError.message || 'Unknown error occurred'}</div>
-          </div>
-        </div>
-      )}
+        {GAMEFOLIO_AVAILABLE && <SignInError provider="gamefolio" />}
+      </section>
     </div>
   );
 }

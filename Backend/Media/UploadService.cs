@@ -99,11 +99,11 @@ namespace VPULSE.Backend.Media
                 var fileContent = new ProgressableStreamContent(fileBytes, "application/octet-stream", ProgressHandler, cts.Token);
                 formData.Add(fileContent, "file", fileName);
 
-                AddOptionalContent(formData, message, "Game");
-                AddOptionalContent(formData, message, "Title");
-                AddOptionalContent(formData, message, "Description");
-                AddOptionalContent(formData, message, "IgdbId");
-                AddOptionalContent(formData, message, "Visibility");
+                // Gamefolio requires a title; the rest is optional. Names follow its clip API
+                // rather than the field names the frontend still uses internally.
+                formData.Add(new StringContent(string.IsNullOrWhiteSpace(title) ? fileNameWithoutExtension : title), "title");
+                AddOptionalContent(formData, message, "Description", "description");
+                AddOptionalContent(formData, message, "Game", "gameId");
 
                 await MessageService.SendFrontendMessage("UploadProgress", new
                 {
@@ -114,11 +114,19 @@ namespace VPULSE.Backend.Media
                     message = "Starting upload..."
                 });
 
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://processing.segra.tv/upload")
+                var provider = OAuthProviders.Gamefolio;
+                string? accessToken = await OAuthTokenService.GetAccessTokenAsync(provider);
+                if (accessToken == null)
+                {
+                    await FailUpload(title, fileName, "Connect your Gamefolio account to publish clips.");
+                    return;
+                }
+
+                var request = new HttpRequestMessage(HttpMethod.Post, $"{provider.ApiBase}/clips")
                 {
                     Content = formData
                 };
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await AuthService.GetJwtAsync());
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
                 var response = await _httpClient.SendAsync(request, cts.Token);
                 response.EnsureSuccessStatusCode();
@@ -146,14 +154,16 @@ namespace VPULSE.Backend.Media
                     try
                     {
                         var responseJson = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                        if (responseJson.TryGetProperty("success", out var successElement) &&
-                            successElement.GetBoolean() &&
-                            responseJson.TryGetProperty("url", out var urlElement))
+                        // Gamefolio answers 201 with { "clip": { ..., "shareUrl": "..." } }. Only
+                        // shareUrl is kept: videoUrl and thumbnailUrl are signed and expire in an
+                        // hour, so storing them would leave dead links behind.
+                        if (responseJson.TryGetProperty("clip", out var clipElement) &&
+                            clipElement.TryGetProperty("shareUrl", out var urlElement))
                         {
                             string url = urlElement.GetString()!;
                             if (!string.IsNullOrEmpty(url))
                             {
-                                // Extract uploadId from the URL (after the last slash)
+                                // The share code is the last path segment.
                                 string uploadId = url.Split('/').Last();
                                 Log.Information($"Extracted upload ID: {uploadId}");
 
@@ -294,12 +304,35 @@ namespace VPULSE.Backend.Media
             }
         }
 
-        private static void AddOptionalContent(MultipartFormDataContent formData, JsonElement message, string field)
+        /// <param name="formField">
+        /// The name the API expects, which differs from the message field the frontend sends.
+        /// </param>
+        private static void AddOptionalContent(MultipartFormDataContent formData, JsonElement message, string field, string formField)
         {
-            if (message.TryGetProperty(field, out JsonElement element))
+            if (message.TryGetProperty(field, out JsonElement element)
+                && element.ValueKind == JsonValueKind.String
+                && element.GetString() is { Length: > 0 } value)
             {
-                formData.Add(new StringContent(element.GetString()!), field.ToLower());
+                formData.Add(new StringContent(value), formField);
             }
+        }
+
+        private static async Task FailUpload(string title, string fileName, string reason)
+        {
+            Log.Warning("Upload not started: {Reason}", reason);
+            lock (_uploadLock)
+            {
+                _activeUploads.Remove(fileName);
+            }
+
+            await MessageService.SendFrontendMessage("UploadProgress", new
+            {
+                title,
+                fileName,
+                progress = 0,
+                status = "error",
+                message = reason
+            });
         }
     }
 }

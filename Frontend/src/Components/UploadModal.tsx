@@ -15,7 +15,7 @@ interface UploadModalProps {
 export default function UploadModal({ video, onUpload, onClose }: UploadModalProps) {
   const { clipShowInBrowserAfterUpload } = useSettings();
   const updateSettings = useSettingsUpdater();
-  const { session } = useAuth();
+  const { gamefolio } = useAuth();
   const [title, setTitle] = useState(video.title || '');
   const [description, setDescription] = useState('');
   const [visibility, setVisibility] = useState<'Public' | 'Unlisted'>(() =>
@@ -164,10 +164,10 @@ export default function UploadModal({ video, onUpload, onClose }: UploadModalPro
             tabIndex={5}
             className="w-full focus:!outline focus:!outline-1 focus:!outline-white focus:!outline-offset-2"
             onClick={handleUpload}
-            disabled={session === null}
+            disabled={!gamefolio.isSignedIn}
           >
             <Upload className="w-5 h-5" />
-            {session === null ? 'Login to upload' : 'Upload'}
+            {gamefolio.isSignedIn ? 'Upload' : 'Publishing coming soon'}
           </Button>
         </div>
       </div>

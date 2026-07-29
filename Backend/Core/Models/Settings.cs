@@ -60,7 +60,6 @@ namespace VPULSE.Backend.Core.Models
         private int _replayBufferMaxSize = 1000;
         private List<Keybind> _keybindings;
         private List<GameSetting> _games = new List<GameSetting>();
-        private Auth _auth = new Auth();
         private bool _clipClearSegmentsAfterCreatingClip = false;
         private bool _clipShowInBrowserAfterUpload = false;
         private string _clipEncoder = "cpu";
@@ -592,16 +591,6 @@ namespace VPULSE.Backend.Core.Models
                 {
                     _inputNoiseSuppression = value;
                 }
-            }
-        }
-
-        [JsonPropertyName("auth")]
-        public Auth Auth
-        {
-            get => _auth;
-            set
-            {
-                _auth = value;
             }
         }
 
@@ -1203,55 +1192,6 @@ namespace VPULSE.Backend.Core.Models
         public override int GetHashCode()
         {
             return (Id + Name).GetHashCode();
-        }
-    }
-
-    // Auth class for storing authentication tokens
-    internal class Auth
-    {
-        private string _jwt = string.Empty;
-        private string _refreshToken = string.Empty;
-
-        [JsonPropertyName("jwt")]
-        public string Jwt
-        {
-            get => _jwt;
-            set
-            {
-                if (_jwt != value)
-                {
-                    bool hasChanged = !Settings.Instance.Auth.Jwt.Equals(value);
-                    _jwt = value;
-
-                    if (Settings.Instance != null && hasChanged && !Settings.Instance._isBulkUpdating)
-                    {
-                        SettingsService.SaveSettings();
-                    }
-                }
-            }
-        }
-
-        [JsonPropertyName("refreshToken")]
-        public string RefreshToken
-        {
-            get => _refreshToken;
-            set
-            {
-                if (_refreshToken != value)
-                {
-                    bool hasChanged = !Settings.Instance.Auth.RefreshToken.Equals(value);
-                    _refreshToken = value;
-                    if (Settings.Instance != null && hasChanged && !Settings.Instance._isBulkUpdating)
-                    {
-                        SettingsService.SaveSettings();
-                    }
-                }
-            }
-        }
-
-        public bool HasCredentials()
-        {
-            return !string.IsNullOrEmpty(_jwt) && !string.IsNullOrEmpty(_refreshToken);
         }
     }
 

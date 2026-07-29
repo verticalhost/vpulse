@@ -1,337 +1,153 @@
-import {
-  useState,
-  useEffect,
-  useRef,
-  createContext,
-  useContext,
-  useCallback,
-  ReactNode,
-} from 'react';
-import { api } from '../lib/api';
+import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import { sendMessageToBackend } from '../Utils/MessageUtils';
 
-interface AuthUser {
-  id: string;
-  email: string;
-  user_metadata?: Record<string, unknown>;
+// The backend owns the sessions. It never sends tokens over the websocket, so everything here is
+// display state: a username, an avatar and a few booleans. Signing in and out are messages; this
+// side cannot authenticate on its own and holds nothing worth stealing.
+
+export type ProviderName = 'vpzone' | 'gamefolio';
+
+export interface ProviderAccount {
+  isSignedIn: boolean;
+  /** False until a client id is configured for the provider, which hides its sign-in button. */
+  isConfigured: boolean;
+  username: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
 }
 
-interface AuthSession {
-  access_token: string;
-  refresh_token: string;
+export interface VpzPlusState {
+  isActive: boolean;
+  since: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  /** 'stripe' for a paid subscription, 'granted' for a gift or comp. */
+  source: string | null;
+  capabilities: string[];
 }
 
-interface AuthContextType {
-  user: AuthUser | null;
-  session: AuthSession | null;
-  authError: string | null;
-  isAuthenticating: boolean;
-  isWaitingForDiscord: boolean;
-  clearAuthError: () => void;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<{ confirmEmail?: boolean }>;
-  loginWithDiscord: () => void;
-  cancelDiscordLogin: () => void;
-  signOut: () => void;
+interface AuthState {
+  vpzone: ProviderAccount;
+  gamefolio: ProviderAccount;
+  vpzPlus: VpzPlusState;
 }
 
-type DiscordLoginResult = {
-  status: 'success' | 'cancelled' | 'expired';
-  accessToken?: string;
-  refreshToken?: string;
+export type SignInStatus = 'idle' | 'waiting' | 'failed' | 'expired' | 'unavailable';
+
+interface AuthContextType extends AuthState {
+  signInStatus: Record<ProviderName, SignInStatus>;
+  signIn: (provider: ProviderName) => void;
+  cancelSignIn: (provider: ProviderName) => void;
+  signOut: (provider: ProviderName) => void;
+  refresh: () => void;
+  clearSignInStatus: (provider: ProviderName) => void;
+}
+
+const emptyAccount: ProviderAccount = {
+  isSignedIn: false,
+  isConfigured: false,
+  username: null,
+  displayName: null,
+  avatarUrl: null,
+};
+
+const emptyVpzPlus: VpzPlusState = {
+  isActive: false,
+  since: null,
+  currentPeriodEnd: null,
+  cancelAtPeriodEnd: false,
+  source: null,
+  capabilities: [],
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Sign-out callbacks that external code can register (e.g. queryClient.clear())
+// Sign-out callbacks external code can register (e.g. queryClient.clear()).
 const signOutCallbacks: Array<() => void> = [];
 export function onSignOut(cb: () => void) {
   signOutCallbacks.push(cb);
 }
 
-function parseJwt(token: string): Record<string, unknown> | null {
-  try {
-    const payload = token.split('.')[1];
-    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-}
-
-function getJwtExp(token: string): number {
-  return (parseJwt(token)?.exp as number) ?? 0;
-}
-
-function getUserFromJwt(token: string): AuthUser | null {
-  const data = parseJwt(token);
-  if (!data?.sub) return null;
-  return { id: data.sub as string, email: (data.email as string) ?? '' };
-}
-
-function migrateOldSupabaseSession(): AuthSession | null {
-  try {
-    const raw = localStorage.getItem('sb-supabase-auth-token');
-    if (!raw) return null;
-    const data = JSON.parse(raw);
-    if (data.access_token && data.refresh_token) {
-      const session = { access_token: data.access_token, refresh_token: data.refresh_token };
-      saveSession(session);
-      localStorage.removeItem('sb-supabase-auth-token');
-      return session;
-    }
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
-function loadSession(): AuthSession | null {
-  const access_token = localStorage.getItem('vpulse_access_token');
-  const refresh_token = localStorage.getItem('vpulse_refresh_token');
-  if (access_token && refresh_token) return { access_token, refresh_token };
-  return migrateOldSupabaseSession();
-}
-
-function saveSession(session: AuthSession) {
-  localStorage.setItem('vpulse_access_token', session.access_token);
-  localStorage.setItem('vpulse_refresh_token', session.refresh_token);
-}
-
-function clearAuth() {
-  localStorage.removeItem('vpulse_access_token');
-  localStorage.removeItem('vpulse_refresh_token');
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<AuthSession | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const [isWaitingForDiscord, setIsWaitingForDiscord] = useState(false);
-  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const sessionGenRef = useRef(0);
+  const [state, setState] = useState<AuthState>({
+    vpzone: emptyAccount,
+    gamefolio: emptyAccount,
+    vpzPlus: emptyVpzPlus,
+  });
+  const [signInStatus, setSignInStatus] = useState<Record<ProviderName, SignInStatus>>({
+    vpzone: 'idle',
+    gamefolio: 'idle',
+  });
 
-  const handleSignOut = useCallback(() => {
-    sessionGenRef.current++;
-    if (refreshTimerRef.current) {
-      clearTimeout(refreshTimerRef.current);
-      refreshTimerRef.current = null;
-    }
-    setSession(null);
-    setUser(null);
-    clearAuth();
-    sendMessageToBackend('Logout');
-    signOutCallbacks.forEach((cb) => cb());
+  useEffect(() => {
+    const onMessage = (event: Event) => {
+      const data = (event as CustomEvent).detail;
+
+      if (data?.method === 'AuthState' && data.content) {
+        setState((previous) => {
+          const next = {
+            vpzone: { ...emptyAccount, ...data.content.vpzone },
+            gamefolio: { ...emptyAccount, ...data.content.gamefolio },
+            vpzPlus: { ...emptyVpzPlus, ...data.content.vpzPlus },
+          };
+          if (previous.vpzone.isSignedIn && !next.vpzone.isSignedIn) {
+            signOutCallbacks.forEach((cb) => cb());
+          }
+          return next;
+        });
+      }
+
+      if (data?.method === 'OAuthLoginResult' && data.content) {
+        const provider = data.content.provider as ProviderName;
+        const status = data.content.status as string;
+        // 'success' and 'cancelled' both return to idle: on success the AuthState push that
+        // follows is what the UI should react to, and a cancel is not an error worth showing.
+        const resolved: SignInStatus =
+          status === 'success' || status === 'cancelled' ? 'idle' : (status as SignInStatus);
+        setSignInStatus((previous) => ({ ...previous, [provider]: resolved }));
+      }
+    };
+
+    window.addEventListener('websocket-message', onMessage);
+    return () => window.removeEventListener('websocket-message', onMessage);
   }, []);
 
-  // Refresh the token and update all state + push to backend
-  const refreshSession = useCallback(
-    async (currentSession: AuthSession) => {
-      const gen = sessionGenRef.current;
-      try {
-        const data = await api.refreshToken(currentSession.refresh_token);
-        if (gen !== sessionGenRef.current) return; // session changed, discard stale refresh
-        if (data.error) {
-          console.error('Token refresh failed:', data.error);
-          handleSignOut();
-          return;
-        }
-        const newSession: AuthSession = {
-          access_token: data.access_token,
-          refresh_token: data.refresh_token,
-        };
-        const newUser = getUserFromJwt(newSession.access_token);
-        setSession(newSession);
-        setUser(newUser);
-        saveSession(newSession);
-        sendMessageToBackend('Login', {
-          accessToken: newSession.access_token,
-          refreshToken: newSession.refresh_token,
-        });
-      } catch {
-        if (gen !== sessionGenRef.current) return;
-        console.error('Token refresh failed');
-        handleSignOut();
-      }
-    },
-    [handleSignOut],
+  const value = useMemo<AuthContextType>(
+    () => ({
+      ...state,
+      signInStatus,
+      signIn: (provider) => {
+        setSignInStatus((previous) => ({ ...previous, [provider]: 'waiting' }));
+        sendMessageToBackend('StartOAuthLogin', { provider });
+      },
+      cancelSignIn: (provider) => {
+        setSignInStatus((previous) => ({ ...previous, [provider]: 'idle' }));
+        sendMessageToBackend('CancelOAuthLogin', { provider });
+      },
+      signOut: (provider) => sendMessageToBackend('SignOutProvider', { provider }),
+      refresh: () => sendMessageToBackend('RefreshAuthState', {}),
+      clearSignInStatus: (provider) =>
+        setSignInStatus((previous) => ({ ...previous, [provider]: 'idle' })),
+    }),
+    [state, signInStatus],
   );
-
-  // Schedule auto-refresh whenever session changes
-  useEffect(() => {
-    if (refreshTimerRef.current) {
-      clearTimeout(refreshTimerRef.current);
-      refreshTimerRef.current = null;
-    }
-    if (!session) return;
-
-    const exp = getJwtExp(session.access_token);
-    // Refresh 30 seconds before expiry
-    const msUntilRefresh = (exp - 30) * 1000 - Date.now();
-
-    if (msUntilRefresh <= 0) {
-      // Already expired, refresh now
-      refreshSession(session);
-    } else {
-      refreshTimerRef.current = setTimeout(() => refreshSession(session), msUntilRefresh);
-    }
-
-    return () => {
-      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
-    };
-  }, [session, refreshSession]);
-
-  // On mount: restore the session from localStorage
-  useEffect(() => {
-    const stored = loadSession();
-    if (stored) {
-      const storedUser = getUserFromJwt(stored.access_token);
-      if (storedUser) {
-        setSession(stored);
-        setUser(storedUser);
-        // Backend login state is synced by the WebSocket onOpen handler once the connection is ready.
-      }
-    }
-  }, []);
-
-  const login = useCallback(async (email: string, password: string) => {
-    sessionGenRef.current++;
-    setIsAuthenticating(true);
-    setAuthError(null);
-    try {
-      const data = await api.login(email, password);
-      if (data.error) {
-        setAuthError(data.error);
-        return;
-      }
-      if (!data.session) {
-        setAuthError('Login failed - no session returned');
-        return;
-      }
-      const newSession: AuthSession = data.session;
-      const authUser = getUserFromJwt(newSession.access_token);
-      setSession(newSession);
-      setUser(authUser);
-      saveSession(newSession);
-      sendMessageToBackend('Login', {
-        accessToken: newSession.access_token,
-        refreshToken: newSession.refresh_token,
-      });
-    } catch {
-      setAuthError('Login failed. Please try again.');
-    } finally {
-      setIsAuthenticating(false);
-    }
-  }, []);
-
-  const register = useCallback(async (email: string, password: string) => {
-    sessionGenRef.current++;
-    setIsAuthenticating(true);
-    setAuthError(null);
-    try {
-      const data = await api.register(email, password);
-      if (data.error) {
-        setAuthError(data.error);
-        return { confirmEmail: false };
-      }
-      if (data.confirmEmail) {
-        return { confirmEmail: true };
-      }
-      // Auto-confirmed: log in automatically
-      if (data.session) {
-        const newSession: AuthSession = data.session;
-        const authUser = getUserFromJwt(newSession.access_token);
-        setSession(newSession);
-        setUser(authUser);
-        saveSession(newSession);
-        sendMessageToBackend('Login', {
-          accessToken: newSession.access_token,
-          refreshToken: newSession.refresh_token,
-        });
-      }
-      return { confirmEmail: false };
-    } catch {
-      setAuthError('Registration failed. Please try again.');
-      return { confirmEmail: false };
-    } finally {
-      setIsAuthenticating(false);
-    }
-  }, []);
-
-  // Discord sign-in opens in the default browser; the backend relays the session back over the websocket.
-  const loginWithDiscord = useCallback(() => {
-    setAuthError(null);
-    setIsWaitingForDiscord(true);
-    sendMessageToBackend('LoginWithDiscord');
-  }, []);
-
-  const cancelDiscordLogin = useCallback(() => {
-    setIsWaitingForDiscord(false);
-    sendMessageToBackend('CancelDiscordLogin');
-  }, []);
-
-  useEffect(() => {
-    const handleMessage = (event: Event) => {
-      const { method, content } = (event as CustomEvent).detail ?? {};
-      if (method !== 'DiscordLoginResult') return;
-
-      const result = content as DiscordLoginResult;
-      setIsWaitingForDiscord(false);
-
-      if (result.status === 'expired') {
-        setAuthError('Discord sign-in timed out. Please try again.');
-        return;
-      }
-      if (result.status !== 'success' || !result.accessToken || !result.refreshToken) {
-        return;
-      }
-
-      const newSession: AuthSession = {
-        access_token: result.accessToken,
-        refresh_token: result.refreshToken,
-      };
-      const authUser = getUserFromJwt(newSession.access_token);
-      if (!authUser) {
-        setAuthError('Failed to authenticate. Please try again.');
-        return;
-      }
-
-      sessionGenRef.current++;
-      setSession(newSession);
-      setUser(authUser);
-      saveSession(newSession);
-      sendMessageToBackend('Login', {
-        accessToken: newSession.access_token,
-        refreshToken: newSession.refresh_token,
-      });
-    };
-
-    window.addEventListener('websocket-message', handleMessage);
-    return () => window.removeEventListener('websocket-message', handleMessage);
-  }, []);
-
-  const value: AuthContextType = {
-    user,
-    session,
-    authError,
-    isAuthenticating,
-    isWaitingForDiscord,
-    clearAuthError: () => setAuthError(null),
-    login,
-    register,
-    loginWithDiscord,
-    cancelDiscordLogin,
-    signOut: handleSignOut,
-  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-  if (context === null) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+}
+
+/** Convenience for the settings sections that gate controls on the plan. */
+export function useVpzPlus() {
+  const { vpzPlus } = useAuth();
+  return {
+    ...vpzPlus,
+    has: (capability: string) => vpzPlus.capabilities.includes(capability),
+  };
 }
