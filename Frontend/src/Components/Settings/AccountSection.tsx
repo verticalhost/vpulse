@@ -5,10 +5,10 @@ import Button from '../Button';
 
 const VPZONE_BILLING_URL = 'https://vpzone.tv/settings/membership';
 
-// Gamefolio's token endpoint rejects public clients, which a desktop app has to be: it demands a
-// client_secret, and a secret shipped in a published binary is not a secret. Publishing stays
-// visible but disabled until they support PKCE-only exchanges.
-const GAMEFOLIO_AVAILABLE = false;
+// Gamefolio shipped public-client support (RFC 8252 8.5) on 2026-07-29 and flipped VPULSE's app
+// to public server-side: the token exchange is client_id + PKCE verifier only, which a desktop
+// app can do honestly — no secret in the binary.
+const GAMEFOLIO_AVAILABLE = true;
 
 function openExternal(url: string) {
   sendMessageToBackend('OpenInBrowser', { Url: url });

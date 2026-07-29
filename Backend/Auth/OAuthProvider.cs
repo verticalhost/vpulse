@@ -18,7 +18,14 @@ namespace VPULSE.Backend.Auth
         // RFC 8252 8.3 prefers the literal loopback address, but registration forms often accept
         // only "localhost", so this follows whatever the provider will register. ContentServer
         // binds both, so either resolves.
-        string RedirectHost = "localhost")
+        string RedirectHost = "localhost",
+        // RFC 6749 says token requests are form-encoded, and most servers take that. Gamefolio's
+        // documented example is a JSON body, so the encoding follows each provider's own docs
+        // rather than assuming the RFC shape everywhere.
+        bool TokenRequestUsesJson = false,
+        // RFC 7009 revocation endpoint; null when the provider does not document one. Called
+        // best-effort on sign-out so the session dies server-side, not just on this machine.
+        string? RevokeUrl = null)
     {
         /// <summary>Must byte-match between the authorize request and the token exchange.</summary>
         public string RedirectUri => $"http://{RedirectHost}:{ContentServer.Port}{CallbackPath}";
@@ -44,8 +51,11 @@ namespace VPULSE.Backend.Auth
             Scopes: "profile:read",
             CallbackPath: "/auth/vpzone/callback"));
 
-        // Registered at developer.gamefolio.com as the "VPULSE" app. The redirect URI is matched
-        // exactly and the form only accepts localhost, so it cannot use the literal 127.0.0.1.
+        // Registered at developer.gamefolio.com as the "VPULSE" app — flipped to a public client
+        // by Gamefolio on 2026-07-29 (their RFC 8252 8.5 rollout): token and revoke requests carry
+        // client_id + code_verifier only, and the old client_secret was revoked server-side. The
+        // redirect URI is matched exactly and the form only accepts localhost, so it cannot use
+        // the literal 127.0.0.1. Their token example is a JSON body, not form-encoded.
         public static readonly OAuthProvider Gamefolio = Configure(new OAuthProvider(
             Name: GamefolioName,
             DisplayName: "Gamefolio",
@@ -54,7 +64,9 @@ namespace VPULSE.Backend.Auth
             ApiBase: "https://app.gamefolio.com/api/public/v1",
             ClientId: "8a74b779-92ec-473a-95ba-c87af1964a46",
             Scopes: "profile:read clips:write",
-            CallbackPath: "/auth/gamefolio/callback"));
+            CallbackPath: "/auth/gamefolio/callback",
+            TokenRequestUsesJson: true,
+            RevokeUrl: "https://app.gamefolio.com/oauth/revoke"));
 
         public static IEnumerable<OAuthProvider> All => [VPZone, Gamefolio];
 

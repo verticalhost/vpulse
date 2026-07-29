@@ -80,8 +80,53 @@ namespace VPULSE.Backend.Auth
 
         public static void SignOut(OAuthProvider provider)
         {
+            // Best-effort server-side revocation before the local wipe, where the provider has an
+            // endpoint. Fire-and-forget: a dead network must never block signing out locally.
+            var tokens = TokenStore.Get(provider.Name);
+            if (provider.RevokeUrl is not null && tokens.HasCredentials)
+                _ = RevokeAsync(provider, tokens.RefreshToken ?? tokens.AccessToken!);
+
             TokenStore.Clear(provider.Name);
             Log.Information("Signed out of {Provider}", provider.DisplayName);
+        }
+
+        /// <summary>
+        /// RFC 7009 revocation, public-client shape: token + client_id, no secret. Revoking the
+        /// refresh token invalidates the whole grant server-side.
+        /// </summary>
+        private static async Task RevokeAsync(OAuthProvider provider, string token)
+        {
+            try
+            {
+                var form = new Dictionary<string, string>
+                {
+                    ["token"] = token,
+                    ["client_id"] = provider.ClientId,
+                };
+
+                using var content = BuildContent(provider, form);
+                using var response = await _http.PostAsync(provider.RevokeUrl, content);
+                Log.Information("{Provider} token revocation: {Status}",
+                    provider.DisplayName, (int)response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                // RFC 7009 says clients must not fail sign-out over this; the local wipe already
+                // happened and the token will age out server-side regardless.
+                Log.Warning("{Provider} token revocation failed: {Type}",
+                    provider.DisplayName, ex.GetType().Name);
+            }
+        }
+
+        private static HttpContent BuildContent(OAuthProvider provider, Dictionary<string, string> form)
+        {
+            if (!provider.TokenRequestUsesJson)
+                return new FormUrlEncodedContent(form);
+
+            return new StringContent(
+                JsonSerializer.Serialize(form),
+                System.Text.Encoding.UTF8,
+                "application/json");
         }
 
         private static async Task<bool> PostTokenRequestAsync(
@@ -89,7 +134,7 @@ namespace VPULSE.Backend.Auth
         {
             try
             {
-                using var content = new FormUrlEncodedContent(form);
+                using var content = BuildContent(provider, form);
                 using var response = await _http.PostAsync(provider.TokenUrl, content);
                 string body = await response.Content.ReadAsStringAsync();
 
