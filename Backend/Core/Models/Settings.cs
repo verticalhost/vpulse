@@ -1322,6 +1322,9 @@ namespace VPULSE.Backend.Core.Models
         // audio (desktop/game capture), independent of the player's own in-game/OS volume.
         [JsonPropertyName("volumeOverride")]
         public float? VolumeOverride { get; set; }
+
+        // Kill feed calibration lives in its own file per game rather than here — see
+        // KillFeedProfileStore. It is shareable data, not a setting.
     }
 
     // Mirrors the global video quality settings. When Preset is "low"/"standard"/"high" the concrete

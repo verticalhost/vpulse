@@ -183,6 +183,16 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Kill feed profiles shipped with the app. Flattened next to the executable so the runtime
+         reads them from one folder, and so a user can drop a profile someone sent them straight in
+         without rebuilding. Their own calibrations live in %APPDATA% and take priority. -->
+    <Content Include="Backend\Games\Profiles\*.json">
+      <Link>GameProfiles\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <Target
     Name="BuildFrontendAssets"
     Inputs="@(FrontendSourceFiles)"

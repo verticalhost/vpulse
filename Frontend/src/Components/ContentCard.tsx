@@ -19,7 +19,9 @@ import {
   ExternalLink,
   Copy,
   Bookmark,
+  ScanSearch,
 } from 'lucide-react';
+import KillFeedScanModal from './KillFeedScanModal';
 import { useAiHighlights } from '../Context/AiHighlightsContext';
 import { useCompression } from '../Context/CompressionContext';
 import Button from './Button';
@@ -552,6 +554,26 @@ export default function ContentCard({
                   <span>Open File Location</span>
                 </Button>
               </li>
+              {/* Post-processing kill detection. Offered on any recording rather than only games
+                  without a native integration: which games detect live is backend logic, and a
+                  copy of that list here would drift. Nothing runs unless the user asks for it, so
+                  live detection is unaffected either way. */}
+              {(type === 'Session' || type === 'Buffer') && (
+                <li>
+                  <Button
+                    variant="menu"
+                    onClick={() => {
+                      (document.activeElement as HTMLElement).blur();
+                      openModal(<KillFeedScanModal content={content!} onClose={closeModal} />, {
+                        size: '2xl',
+                      });
+                    }}
+                  >
+                    <ScanSearch size={20} />
+                    <span>Find Kills</span>
+                  </Button>
+                </li>
+              )}
               {(type === 'Clip' || type === 'Highlight') &&
                 !content?.fileName?.endsWith('_compressed') && (
                   <li>

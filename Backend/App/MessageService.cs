@@ -126,6 +126,38 @@ namespace VPULSE.Backend.App
                             root.TryGetProperty("Parameters", out JsonElement compressParameterElement);
                             _ = Task.Run(() => HandleCompressVideo(compressParameterElement));
                             break;
+                        // Post-processing kill detection, for games with no native integration.
+                        // Scanning reads a whole recording off disk, so it runs off the message
+                        // loop and reports progress rather than blocking.
+                        case "GetKillFeedCalibrationFrame":
+                            root.TryGetProperty("Parameters", out JsonElement calibFrameElement);
+                            _ = Task.Run(() => KillFeedScanService.HandleGetCalibrationFrame(calibFrameElement));
+                            break;
+                        case "TestKillFeedCalibration":
+                            root.TryGetProperty("Parameters", out JsonElement calibTestElement);
+                            _ = Task.Run(() => KillFeedScanService.HandleTestCalibration(calibTestElement));
+                            break;
+                        case "GetKillFeedProfile":
+                            root.TryGetProperty("Parameters", out JsonElement getKillProfileElement);
+                            _ = Task.Run(() => KillFeedScanService.HandleGetProfile(getKillProfileElement));
+                            break;
+                        case "SaveKillFeedProfile":
+                            root.TryGetProperty("Parameters", out JsonElement killProfileElement);
+                            _ = Task.Run(() => KillFeedScanService.HandleSaveProfile(killProfileElement));
+                            break;
+                        case "ScanKillFeed":
+                            root.TryGetProperty("Parameters", out JsonElement killScanElement);
+                            _ = Task.Run(() => KillFeedScanService.HandleScanContent(killScanElement));
+                            break;
+                        case "CancelKillFeedScan":
+                            KillFeedScanService.CancelScan();
+                            Log.Information("CancelKillFeedScan command received.");
+                            break;
+                        case "AddBookmarks":
+                            root.TryGetProperty("Parameters", out JsonElement addBookmarksElement);
+                            await KillFeedScanService.HandleAddBookmarks(addBookmarksElement);
+                            Log.Information("AddBookmarks command received.");
+                            break;
                         case "ApplyUpdate":
                             UpdateService.ApplyUpdate();
                             break;

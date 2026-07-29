@@ -1,0 +1,10 @@
+{
+  "gameName": "PUBG: BATTLEGROUNDS",
+  "regionX": 0.7875,
+  "regionY": 0.0648,
+  "regionWidth": 0.2083,
+  "regionHeight": 0.0741,
+  "playerName": "",
+  "scanFramesPerSecond": 1.0,
+  "includeDeaths": true
+}

@@ -184,6 +184,23 @@ export interface GameSetting {
   volumeOverride: number | null; // Multiplier on top of the configured device volume (0-2)
 }
 
+// Where a game draws its kill feed and who the player is in it. Calibrated once from a recording
+// and reused for every later scan of the same game. Only used for games with no native integration.
+//
+// Stored as one JSON file per game rather than in settings — see Backend/Games/Profiles/README.md —
+// so the frontend asks the backend for it instead of reading it from the settings object.
+export interface KillFeedProfile {
+  // Relative to the frame (0-1), so a profile calibrated on a 1080p recording applies to 1440p too.
+  regionX: number;
+  regionY: number;
+  regionWidth: number;
+  regionHeight: number;
+  // The player's in-game name. Its position in a feed row is what separates a kill from a death.
+  playerName: string;
+  scanFramesPerSecond: number;
+  includeDeaths: boolean;
+}
+
 export interface GameIntegrationSettings {
   enabled: boolean;
 }
