@@ -92,8 +92,20 @@ namespace VPULSE.Backend.App
                             if (ResolveProvider(root) is { } signOutProvider)
                                 _ = Task.Run(() => AuthStateService.SignOutAsync(signOutProvider));
                             break;
+                        case "GetStreamerModeState":
+                            _ = Task.Run(StreamerModeService.SendStateAsync);
+                            break;
                         case "RefreshAuthState":
                             _ = Task.Run(AuthStateService.RefreshAllAsync);
+                            break;
+                        case "SaveStreamerClip":
+                            {
+                                string game = root.TryGetProperty("Parameters", out var scParams)
+                                    && scParams.TryGetProperty("game", out var scGame)
+                                    ? scGame.GetString() ?? "Unknown"
+                                    : AppState.Instance.Recording?.Game ?? "Unknown";
+                                _ = Task.Run(() => StreamerModeService.SaveClipAsync(game));
+                            }
                             break;
                         case "CancelClip":
                             if (root.TryGetProperty("Parameters", out var cancelClipParams) &&
@@ -243,6 +255,7 @@ namespace VPULSE.Backend.App
                             // The renderer stores no session of its own, so it needs this pushed to
                             // it on every connection to know who is signed in.
                             await AuthStateService.SendToFrontendAsync();
+                            await StreamerModeService.SendStateAsync();
                             break;
                         case "SetVideoLocation":
                             await SetVideoLocationAsync();

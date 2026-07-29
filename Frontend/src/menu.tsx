@@ -10,6 +10,7 @@ import { useClipping } from './Context/ClippingContext';
 import { useUpdate } from './Context/UpdateContext';
 import { useObsDownload } from './Context/ObsDownloadContext';
 import { useAiHighlights } from './Context/AiHighlightsContext';
+import { useStreamerMode } from './Hooks/useStreamerMode';
 import UploadCard from './Components/UploadCard';
 import ImportCard from './Components/ImportCard';
 import ContentMigrationCard from './Components/ContentMigrationCard';
@@ -48,6 +49,7 @@ const MENU_ICONS: Record<MenuItemId, LucideIcon> = {
 export default function Menu({ selectedMenu, onSelectMenu }: MenuProps) {
   const settings = useSettings();
   const appState = useAppState();
+  const streamerMode = useStreamerMode();
   const { hasLoadedObs, recording, preRecording } = appState;
   const { updateInfo } = useUpdate();
   const { aiProgress } = useAiHighlights();
@@ -292,6 +294,23 @@ export default function Menu({ selectedMenu, onSelectMenu }: MenuProps) {
               <p className="text-center mt-2 disabled">Starting OBS</p>
             </>
           )}
+        </div>
+      )}
+
+      {/* Whether VPULSE can ride the user's OBS instead of capturing alongside it. */}
+      {streamerMode.isReady && (
+        <div className="px-4 mb-2">
+          <div
+            className="flex items-center gap-2 text-xs"
+            title={streamerMode.isConnected ? 'VPULSE can save clips from your OBS scene' : streamerMode.reason}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${streamerMode.isConnected ? 'bg-success' : 'bg-error'}`}
+            />
+            <span className={streamerMode.isConnected ? 'text-success' : 'text-error'}>
+              {streamerMode.isConnected ? 'OBS connected' : 'OBS disconnected'}
+            </span>
+          </div>
         </div>
       )}
 

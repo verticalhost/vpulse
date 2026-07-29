@@ -295,6 +295,9 @@ namespace VPULSE.Backend.App
                 EntitlementService.RestoreFromCache();
                 Task.Run(AuthStateService.RefreshAllAsync);
 
+                // Watches for the user's OBS so the UI can show whether streamer mode is available.
+                Task.Run(Recorder.StreamerModeService.WatchAsync);
+
                 // Run data migrations
                 Task.Run(MigrationService.RunMigrations);
 
