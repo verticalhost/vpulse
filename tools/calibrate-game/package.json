@@ -1,0 +1,10 @@
+{
+  "name": "vpulse-calibrate-game",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Maintainer tool: generate a kill feed profile for a game by having a Claude vision model read sample frames from a recording. End users never run this — they receive the resulting JSON profile.",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0"
+  }
+}

@@ -20,8 +20,14 @@ already calibrated will not disturb them, and an app update cannot overwrite the
 
 ## Adding a game
 
-Calibrate it once in the app (session card → **Find Kills**), then copy the resulting file from
-`%APPDATA%/VPULSE/game-profiles/` into this folder. Blank out `playerName` first — see below.
+Two ways:
+
+- **By hand:** calibrate once in the app (session card → **Find Kills**), then copy the resulting
+  file from `%APPDATA%/VPULSE/game-profiles/` into this folder. Blank out `playerName` first — see
+  below.
+- **With AI:** `tools/calibrate-game` sends sample frames from a recording to a Claude vision
+  model and writes the profile here directly, `playerName` already blank. Check the preview image
+  it produces, then validate on a recording with known kills. See `tools/calibrate-game/README.md`.
 
 The file name must be the game name lowercased with every run of non-alphanumeric characters
 replaced by a single dash: `PUBG: BATTLEGROUNDS` → `pubg-battlegrounds.json`. This has to match
