@@ -63,6 +63,12 @@ left-to-right ordering.
 
 `delta-force.json` covers the same top-right feed, validated against a live session.
 
+Delta Force is why the scanner reads every frame twice — once raw, once with redness mapped to
+brightness. Its feed draws enemy names in dark red that plain OCR cannot read, so a kill row would
+surface with only one name and be discarded as unclear. Measured on a session full of kills, the
+raw pass alone found none of them; the dual pass recovers the red name, completes the pair, and the
+kills come back. (The second pass only ever adds words — nothing the raw pass read is discarded.)
+
 **Known limitation for Delta Force:** the feed uses the same row shape for reviving a teammate as
 for killing an enemy — `LordWaffl3 ⟳ Zosazi` reads identically to a kill, and the scan reports it as
 one. The two differ only by an icon, which OCR does not see. Confirmed on a session where the player

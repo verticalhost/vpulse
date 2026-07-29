@@ -250,29 +250,23 @@ namespace VPULSE.Backend.Media
                 if (!await ExtractFrameAsync(videoPath, time, region, path, CancellationToken.None))
                     return [];
 
-                OcrResult ocr;
+                // Same dual-pass reading as the scan itself, so calibration shows the user exactly
+                // what a scan will see — including names the raw pass alone cannot read, which on
+                // Delta Force is the player's own name in every kill row.
+                List<PlacedWord> words;
                 using (var bitmap = new Bitmap(path))
-                {
-                    using var softwareBitmap = await ToSoftwareBitmapAsync(bitmap);
-                    ocr = await engine.RecognizeAsync(softwareBitmap);
-                }
+                    words = await RecognizeAllWordsAsync(engine, bitmap);
 
                 var lines = new List<RecognisedLine>();
-                foreach (var line in ocr.Lines)
+                foreach (var row in GroupIntoRows(words))
                 {
-                    if (line.Words.Count == 0)
-                        continue;
-
-                    double left = line.Words.Min(w => w.BoundingRect.Left);
-                    double right = line.Words.Max(w => w.BoundingRect.Right);
+                    double left = row.Min(w => w.Left);
+                    double right = row.Max(w => w.Left + w.Width);
                     double span = Math.Max(1, right - left);
 
                     lines.Add(new RecognisedLine(
-                        line.Text,
-                        line.Words
-                            .OrderBy(w => w.BoundingRect.Left)
-                            .Select(w => new RecognisedWord(w.Text, (w.BoundingRect.Left - left) / span))
-                            .ToList()));
+                        string.Join(' ', row.Select(w => w.Text)),
+                        row.Select(w => new RecognisedWord(w.Text, (w.Left - left) / span)).ToList()));
                 }
 
                 return lines;
@@ -365,26 +359,23 @@ namespace VPULSE.Backend.Media
         {
             var results = new List<(Role, string)>();
 
-            OcrResult ocr;
-            // Deliberately no thresholding or grayscale conversion. Windows OCR reads the raw game
-            // frame better than a preprocessed one: on a PUBG feed the luminance threshold used by
-            // the live OcrIntegration erased the player's own (tinted) row while keeping other
-            // players' white rows — exactly backwards for this purpose.
+            List<PlacedWord> words;
             using (var bitmap = new Bitmap(framePath))
-            {
-                using var softwareBitmap = await ToSoftwareBitmapAsync(bitmap);
-                ocr = await engine.RecognizeAsync(softwareBitmap);
-            }
+                words = await RecognizeAllWordsAsync(engine, bitmap);
 
             int tolerance = MatchTolerance(playerName);
+            string canonicalPlayer = Canonical(playerName);
 
-            foreach (var row in GroupIntoRows(ocr))
+            foreach (var row in GroupIntoRows(words))
             {
                 int bestIndex = -1;
                 int bestDistance = int.MaxValue;
                 for (int i = 0; i < row.Count; i++)
                 {
-                    int distance = LevenshteinDistance(row[i].Text.ToLowerInvariant(), playerName.ToLowerInvariant());
+                    // Compared on letters and digits only. Game fonts produce stray punctuation —
+                    // "LordWaffl3" came back as "LordV/aff13", whose raw edit distance fails the
+                    // tolerance purely on the '/' the OCR invented out of the W.
+                    int distance = LevenshteinDistance(Canonical(row[i].Text), canonicalPlayer);
                     if (distance < bestDistance)
                     {
                         bestDistance = distance;
@@ -439,26 +430,98 @@ namespace VPULSE.Backend.Media
                 return false;
 
             int allowed = Math.Max(2, Math.Min(first.Length, second.Length) / 3);
-            return LevenshteinDistance(first.ToLowerInvariant(), second.ToLowerInvariant()) > allowed;
+            return LevenshteinDistance(Canonical(first), Canonical(second)) > allowed;
         }
 
-        private sealed record PlacedWord(string Text, double Left, double Top, double Height);
+        private sealed record PlacedWord(string Text, double Left, double Top, double Width, double Height);
 
         /// <summary>
-        /// Rebuilds the feed's visual rows from the recognised words, by vertical position.
-        ///
-        /// The OCR engine's own line grouping cannot be used for this. A feed row is
-        /// "killer [weapon icon] victim", and the icon leaves a gap wide enough that the engine
-        /// reports the two names as separate lines — measured on Battlefield 6, where every row came
-        /// back split. Reading position within an OCR line then compares a name against nothing, and
-        /// the kill/death distinction collapses.
-        ///
-        /// Words that share a vertical band belong to the same row whatever the engine decided.
+        /// The player's name and the opponent's are compared on letters and digits alone, lowercase.
+        /// Stylised game fonts make the OCR sprinkle punctuation into names ('W' read as 'V/'), and
+        /// every such character is an edit the tolerance has to absorb for no information gained.
         /// </summary>
-        private static List<List<PlacedWord>> GroupIntoRows(OcrResult ocr)
+        private static string Canonical(string text) =>
+            new(text.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+
+        /// <summary>
+        /// Runs OCR twice over the frame — once raw, once with the red channel isolated — and merges
+        /// the words. The union is what matters: the raw pass stays authoritative and nothing it
+        /// found is ever discarded (a global threshold erased PUBG's tinted rows; that lesson holds).
+        ///
+        /// The second pass exists for Delta Force, whose feed colours the killer dark red and the
+        /// victim light. The raw pass reliably reads only the light name — and the player's own
+        /// kills put their name on the dark side, so an entire session of kills scanned as nothing
+        /// but deaths. Redness mapped to brightness makes those names readable; duplicates where
+        /// both passes read the same word are resolved by geometry in GroupIntoRows.
+        /// </summary>
+        private static async Task<List<PlacedWord>> RecognizeAllWordsAsync(OcrEngine engine, Bitmap bitmap)
         {
             var words = new List<PlacedWord>();
 
+            using (var softwareBitmap = await ToSoftwareBitmapAsync(bitmap))
+                CollectWords(await engine.RecognizeAsync(softwareBitmap), words);
+
+            using (var redIsolated = IsolateRedChannel(bitmap))
+            using (var softwareBitmap = await ToSoftwareBitmapAsync(redIsolated))
+                CollectWords(await engine.RecognizeAsync(softwareBitmap), words);
+
+            return words;
+        }
+
+        /// <summary>
+        /// Maps how much redder a pixel is than its other channels to grayscale brightness, so text
+        /// drawn in dark red becomes bright on black. Done in memory on the extracted frame — an
+        /// earlier attempt did this with an ffmpeg filter over re-encoded video, and the compression
+        /// destroyed exactly the faint text the pass exists to recover.
+        /// </summary>
+        private static Bitmap IsolateRedChannel(Bitmap source)
+        {
+            int w = source.Width, h = source.Height;
+            var output = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+            var src = source.LockBits(
+                new Rectangle(0, 0, w, h),
+                System.Drawing.Imaging.ImageLockMode.ReadOnly,
+                System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            var dst = output.LockBits(
+                new Rectangle(0, 0, w, h),
+                System.Drawing.Imaging.ImageLockMode.WriteOnly,
+                System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+            try
+            {
+                for (int y = 0; y < h; y++)
+                {
+                    nint srcRow = src.Scan0 + y * src.Stride;
+                    nint dstRow = dst.Scan0 + y * dst.Stride;
+
+                    for (int x = 0; x < w; x++)
+                    {
+                        byte b = System.Runtime.InteropServices.Marshal.ReadByte(srcRow, x * 4);
+                        byte g = System.Runtime.InteropServices.Marshal.ReadByte(srcRow, x * 4 + 1);
+                        byte r = System.Runtime.InteropServices.Marshal.ReadByte(srcRow, x * 4 + 2);
+
+                        int redness = Math.Clamp((r - Math.Max(g, b)) * 4, 0, 255);
+                        byte v = (byte)redness;
+
+                        System.Runtime.InteropServices.Marshal.WriteByte(dstRow, x * 4, v);
+                        System.Runtime.InteropServices.Marshal.WriteByte(dstRow, x * 4 + 1, v);
+                        System.Runtime.InteropServices.Marshal.WriteByte(dstRow, x * 4 + 2, v);
+                        System.Runtime.InteropServices.Marshal.WriteByte(dstRow, x * 4 + 3, 255);
+                    }
+                }
+            }
+            finally
+            {
+                source.UnlockBits(src);
+                output.UnlockBits(dst);
+            }
+
+            return output;
+        }
+
+        private static void CollectWords(OcrResult ocr, List<PlacedWord> words)
+        {
             foreach (var line in ocr.Lines)
             {
                 foreach (var word in line.Words)
@@ -474,10 +537,27 @@ namespace VPULSE.Backend.Media
                         word.Text,
                         word.BoundingRect.Left,
                         word.BoundingRect.Top,
+                        word.BoundingRect.Width,
                         word.BoundingRect.Height));
                 }
             }
+        }
 
+        /// <summary>
+        /// Rebuilds the feed's visual rows from the recognised words, by vertical position.
+        ///
+        /// The OCR engine's own line grouping cannot be used for this. A feed row is
+        /// "killer [weapon icon] victim", and the icon leaves a gap wide enough that the engine
+        /// reports the two names as separate lines — measured on Battlefield 6, where every row came
+        /// back split. Reading position within an OCR line then compares a name against nothing, and
+        /// the kill/death distinction collapses.
+        ///
+        /// Words that share a vertical band belong to the same row whatever the engine decided.
+        /// With two OCR passes feeding this, the same physical word can arrive twice; overlapping
+        /// duplicates within a row are collapsed onto whichever reading carried more of a name.
+        /// </summary>
+        private static List<List<PlacedWord>> GroupIntoRows(List<PlacedWord> words)
+        {
             if (words.Count == 0)
                 return [];
 
@@ -506,7 +586,28 @@ namespace VPULSE.Backend.Media
             }
 
             foreach (var row in rows)
+            {
                 row.Sort((a, b) => a.Left.CompareTo(b.Left));
+
+                // Both OCR passes may have read the same physical word. Two words in one row whose
+                // horizontal extents mostly overlap are one word read twice — keep the reading that
+                // carried more of a name, which is what the matching operates on.
+                for (int i = row.Count - 1; i > 0; i--)
+                {
+                    var left = row[i - 1];
+                    var right = row[i];
+
+                    double overlap = Math.Min(left.Left + left.Width, right.Left + right.Width) - right.Left;
+                    double smallerWidth = Math.Min(left.Width, right.Width);
+
+                    if (smallerWidth <= 0 || overlap < smallerWidth * 0.5)
+                        continue;
+
+                    if (Canonical(right.Text).Length > Canonical(left.Text).Length)
+                        row[i - 1] = right;
+                    row.RemoveAt(i);
+                }
+            }
 
             return rows;
         }
