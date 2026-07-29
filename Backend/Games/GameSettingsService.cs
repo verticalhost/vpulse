@@ -1,3 +1,4 @@
+using VPULSE.Backend.Auth;
 using System.Linq;
 using VPULSE.Backend.Core;
 using VPULSE.Backend.Core.Models;
@@ -65,6 +66,17 @@ namespace VPULSE.Backend.Games
         /// any per-game overrides (quality / recording mode / discard) on top of the global settings.
         /// </summary>
         public static EffectiveRecordingSettings Resolve(string? exePath)
+        {
+            var eff = ResolveConfigured(exePath);
+
+            // Applied here rather than at each return inside ResolveConfigured, and never written
+            // back to stored settings: a lapsed subscriber keeps their configuration and gets it
+            // back untouched when they resubscribe.
+            FeatureGate.ClampRecording(eff);
+            return eff;
+        }
+
+        private static EffectiveRecordingSettings ResolveConfigured(string? exePath)
         {
             var s = Settings.Instance;
             var eff = new EffectiveRecordingSettings

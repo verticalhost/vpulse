@@ -1,3 +1,4 @@
+using VPULSE.Backend.Auth;
 using Serilog;
 using ObsKit.NET;
 using ObsKit.NET.Scenes;
@@ -1898,11 +1899,23 @@ namespace VPULSE.Backend.Recorder
                 AppState.Instance.Recording = null;
                 AppState.Instance.PreRecording = null;
 
-                // If the recording is not a replay buffer recording, AI is enabled, user is authenticated, and auto generate highlights is enabled -> analyze the video!
+                // If the recording is not a replay buffer recording, AI is enabled, and auto generate highlights is enabled -> analyze the video!
                 if (Settings.Instance.EnableAi && Settings.Instance.AutoGenerateHighlights && !isReplayBufferMode && bookmarks.Any(b => b.Type.IncludeInHighlight()))
                 {
-                    string fileName = Path.GetFileNameWithoutExtension(filePath);
-                    _ = AiService.CreateHighlight(fileName);
+                    if (FeatureGate.Allows(FeatureGate.CapAiHighlights))
+                    {
+                        string fileName = Path.GetFileNameWithoutExtension(filePath);
+                        _ = AiService.CreateHighlight(fileName);
+                    }
+                    else
+                    {
+                        // Say something: a session that produced highlight-worthy moments and then
+                        // silently produced no highlight reads as a bug, not as a plan limit.
+                        int moments = bookmarks.Count(b => b.Type.IncludeInHighlight());
+                        Log.Information("Skipping automatic highlight ({Moments} moments): VPZ+ is not active", moments);
+                        _ = MessageService.SendFrontendMessage("VpzUpsell",
+                            new { feature = FeatureGate.CapAiHighlights, moments });
+                    }
                 }
             }
             finally

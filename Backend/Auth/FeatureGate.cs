@@ -30,5 +30,33 @@ namespace VPULSE.Backend.Auth
         public static string[] ActiveCapabilities() => EntitlementService.IsActive
             ? [CapAiHighlights, CapUnlimitedQuality, CapExtendedReplayBuffer]
             : [];
+
+        // Ascending. Anything unrecognised is left alone rather than guessed at, so a future
+        // resolution added to the settings model cannot be silently downgraded by an old build.
+        private static readonly string[] ResolutionLadder = ["480p", "720p", "1080p", "1440p", "4K"];
+
+        /// <summary>Caps effective settings to the free tier. Stored settings are never touched.</summary>
+        public static void ClampRecording(Games.EffectiveRecordingSettings eff)
+        {
+            if (EntitlementService.IsActive)
+                return;
+
+            int configured = Array.FindIndex(ResolutionLadder,
+                r => string.Equals(r, eff.Resolution, StringComparison.OrdinalIgnoreCase));
+            int ceiling = Array.FindIndex(ResolutionLadder,
+                r => string.Equals(r, FreeMaxResolution, StringComparison.OrdinalIgnoreCase));
+
+            if (configured > ceiling && ceiling >= 0)
+                eff.Resolution = ResolutionLadder[ceiling];
+
+            if (eff.FrameRate > FreeMaxFrameRate)
+                eff.FrameRate = FreeMaxFrameRate;
+
+            if (eff.ReplayBufferDuration > FreeMaxReplayBufferSeconds)
+                eff.ReplayBufferDuration = FreeMaxReplayBufferSeconds;
+
+            // Bitrate is left alone deliberately: above 1080p it is wasted bits rather than a
+            // feature, and clamping it would make free recordings look worse than upstream Segra.
+        }
     }
 }
