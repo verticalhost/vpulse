@@ -78,7 +78,11 @@ namespace VPULSE.Backend.Windows.Display
                 return true;
             }
 
-            const int maxAttempts = 60;
+            // Three minutes, not one: a game that puts a launcher and an anti-cheat in front of
+            // itself takes longer than that to show a window. PUBG went past 60s on a real launch
+            // and the recording was abandoned before the game had even appeared. Waiting longer
+            // only delays giving up on a game that never draws; it costs nothing otherwise.
+            const int maxAttempts = 180;
             const int delayMs = 1000;
 
             for (int attempt = 1; attempt <= maxAttempts; attempt++)
