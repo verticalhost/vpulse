@@ -23,6 +23,7 @@ import { useModal } from '../../Context/ModalContext';
 import CustomGameModal from '../CustomGameModal';
 import DropdownSelect from '../DropdownSelect';
 import { useDeleteConfirmation } from '../../Hooks/useDeleteConfirmation';
+import { getClippingMode } from '../../lib/autoClipping';
 
 const BITRATE_OPTIONS = Array.from({ length: 19 }, (_, i) => (i + 2) * 5); // 10..100 Mbps
 
@@ -269,11 +270,20 @@ export default function GameDetectionSection() {
 
   return (
     <div className="p-4 bg-base-300 rounded-lg shadow-md border border-custom">
-      <h2 className="text-xl font-semibold mb-2">Game Recording &amp; Overrides</h2>
+      <div className="flex items-center gap-2 mb-2">
+        <span className="badge badge-sm badge-secondary font-semibold tracking-wide">
+          AI-AUTOCLIP · SEMI-AUTO
+        </span>
+        <h2 className="text-xl font-semibold">Game recording &amp; overrides</h2>
+      </div>
       <p className="text-sm opacity-80 mb-4">
         Add a game here to force VPULSE to record it (or stop it from recording), and optionally
         override your recording settings for that game. Most games are detected automatically, so
         add one only if it isn&apos;t being recorded, or when you want different settings for it.
+      </p>
+      <p className="text-sm opacity-80 mb-4">
+        Games without an integration above do not clip themselves. Their kills are found afterwards
+        from the recording — each game shows which of the two it uses when you select it.
       </p>
 
       {/* Add game search */}
@@ -480,7 +490,21 @@ function GamePanel({
       <div className="bg-base-200 rounded-lg border border-base-400 p-4 flex items-center gap-4">
         <GameIcon iconId={iconId} customIcon={game.customIcon} name={game.name} size={48} />
         <div className="min-w-0 flex-1">
-          <div className="font-semibold text-lg truncate">{game.name}</div>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-semibold text-lg truncate">{game.name}</span>
+            {/* Which of the two clipping modes this game gets. Shown here rather than only in the
+                integrations list, because this is the panel someone opens when a game is not
+                clipping itself and they are trying to work out why. */}
+            {getClippingMode(game.name) === 'auto' ? (
+              <span className="badge badge-sm badge-primary font-semibold tracking-wide flex-shrink-0">
+                AUTO-CLIPPING
+              </span>
+            ) : (
+              <span className="badge badge-sm badge-secondary font-semibold tracking-wide flex-shrink-0">
+                AI-AUTOCLIP · SEMI-AUTO
+              </span>
+            )}
+          </div>
           <div className="text-xs text-gray-400 truncate">
             {game.paths.length === 1 ? game.paths[0] : `${game.paths.length} executables`}
           </div>
@@ -499,6 +523,17 @@ function GamePanel({
           />
         </label>
       </div>
+
+      {getClippingMode(game.name) === 'semi-auto' && (
+        <div className="bg-base-200 rounded-lg border border-base-400 p-4 text-sm">
+          <div className="font-medium mb-1">Clipping {game.name}</div>
+          <p className="opacity-80">
+            VPULSE cannot read this game while you play, so kills are found afterwards instead: open
+            a recording of it, choose <span className="font-medium">Find Kills</span>, and box its
+            kill feed once. Every later session of {game.name} scans with that setup.
+          </p>
+        </div>
+      )}
 
       {/* Recording quality override */}
       <OverrideSection

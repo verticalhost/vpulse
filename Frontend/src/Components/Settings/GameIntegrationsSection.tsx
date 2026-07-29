@@ -185,10 +185,17 @@ export default function GameIntegrationsSection() {
 
   return (
     <div className="p-4 bg-base-300 rounded-lg shadow-md border border-custom">
-      <h2 className="text-xl font-semibold mb-2">Game Integrations</h2>
+      <div className="flex items-center gap-2 mb-2">
+        <span className="badge badge-sm badge-primary font-semibold tracking-wide">AUTO-CLIPPING</span>
+        <h2 className="text-xl font-semibold">Game integrations</h2>
+      </div>
       <p className="text-sm opacity-80 mb-4">
-        Enable automatic event detection for supported games. When enabled, VPULSE will automatically
-        bookmark kills, goals, and other events during gameplay.
+        These games clip themselves. VPULSE reads each game directly and bookmarks kills, goals and
+        other moments as they happen — nothing to set up, nothing to run afterwards.
+      </p>
+      <p className="text-sm opacity-80 mb-4">
+        Any game not listed here can still be clipped, semi-automatically: see{' '}
+        <span className="font-medium">Game recording &amp; overrides</span> below.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
