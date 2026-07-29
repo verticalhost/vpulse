@@ -339,22 +339,13 @@ namespace VPULSE.Backend.Media
 
             int tolerance = MatchTolerance(playerName);
 
-            foreach (var line in ocr.Lines)
+            foreach (var row in GroupIntoRows(ocr))
             {
-                // Digits in a feed row are team and kill counters, not participants.
-                var names = line.Words
-                    .Where(w => !w.Text.All(c => char.IsDigit(c) || c == '|'))
-                    .OrderBy(w => w.BoundingRect.Left)
-                    .ToList();
-
-                if (names.Count == 0)
-                    continue;
-
                 int bestIndex = -1;
                 int bestDistance = int.MaxValue;
-                for (int i = 0; i < names.Count; i++)
+                for (int i = 0; i < row.Count; i++)
                 {
-                    int distance = LevenshteinDistance(names[i].Text.ToLowerInvariant(), playerName.ToLowerInvariant());
+                    int distance = LevenshteinDistance(row[i].Text.ToLowerInvariant(), playerName.ToLowerInvariant());
                     if (distance < bestDistance)
                     {
                         bestDistance = distance;
@@ -368,21 +359,21 @@ namespace VPULSE.Backend.Media
                 // Kill feeds put the killer on the left and the victim on the right, in every
                 // shooter checked. Position in the row is what separates a kill from a death — and
                 // it doubles as a noise filter, since a stray HUD word matching the player name
-                // lands in the middle of a line far more often than at either end.
+                // lands in the middle of a row far more often than at either end.
                 //
-                // With a single name on the line there is no position to read: the player is both
+                // With a single name on the row there is no position to read: the player is both
                 // first and last. That happens when the calibrated region clips the row, and
                 // calling it a kill (or a death) would be a coin flip presented as a fact. Observed
                 // in testing with a hand-drawn region too narrow for the feed.
-                Role role = names.Count < 2 ? Role.Ambiguous
+                Role role = row.Count < 2 ? Role.Ambiguous
                           : bestIndex == 0 ? Role.Kill
-                          : bestIndex == names.Count - 1 ? Role.Death
+                          : bestIndex == row.Count - 1 ? Role.Death
                           : Role.Ambiguous;
 
                 string opponent = role switch
                 {
-                    Role.Kill => names.Count > 1 ? names[^1].Text : string.Empty,
-                    Role.Death => names.Count > 1 ? names[0].Text : string.Empty,
+                    Role.Kill => row[^1].Text,
+                    Role.Death => row[0].Text,
                     _ => string.Empty,
                 };
 
@@ -393,9 +384,98 @@ namespace VPULSE.Backend.Media
         }
 
         /// <summary>
+        /// Whether two readings name genuinely different opponents, used to decide when consecutive
+        /// detections are two events rather than one seen twice.
+        ///
+        /// The opponent name is the least reliable thing the scan produces — the same row read on
+        /// two frames gave "porky2rules" and "or". Treating any difference as a new event turned one
+        /// kill into five. So the name only splits an event when both readings look substantial
+        /// enough to trust; a short or empty one defers to the timing instead.
+        /// </summary>
+        private static bool AreDifferentOpponents(string first, string second)
+        {
+            const int MinimumTrustedLength = 4;
+
+            if (first.Length < MinimumTrustedLength || second.Length < MinimumTrustedLength)
+                return false;
+
+            int allowed = Math.Max(2, Math.Min(first.Length, second.Length) / 3);
+            return LevenshteinDistance(first.ToLowerInvariant(), second.ToLowerInvariant()) > allowed;
+        }
+
+        private sealed record PlacedWord(string Text, double Left, double Top, double Height);
+
+        /// <summary>
+        /// Rebuilds the feed's visual rows from the recognised words, by vertical position.
+        ///
+        /// The OCR engine's own line grouping cannot be used for this. A feed row is
+        /// "killer [weapon icon] victim", and the icon leaves a gap wide enough that the engine
+        /// reports the two names as separate lines — measured on Battlefield 6, where every row came
+        /// back split. Reading position within an OCR line then compares a name against nothing, and
+        /// the kill/death distinction collapses.
+        ///
+        /// Words that share a vertical band belong to the same row whatever the engine decided.
+        /// </summary>
+        private static List<List<PlacedWord>> GroupIntoRows(OcrResult ocr)
+        {
+            var words = new List<PlacedWord>();
+
+            foreach (var line in ocr.Lines)
+            {
+                foreach (var word in line.Words)
+                {
+                    // Names contain letters. Everything else in a feed row is decoration: kill
+                    // counters, team numbers, and the separator between killer and victim, which the
+                    // engine reads as '>' and would otherwise be treated as a participant — it was
+                    // being reported as the opponent's name.
+                    if (!word.Text.Any(char.IsLetter))
+                        continue;
+
+                    words.Add(new PlacedWord(
+                        word.Text,
+                        word.BoundingRect.Left,
+                        word.BoundingRect.Top,
+                        word.BoundingRect.Height));
+                }
+            }
+
+            if (words.Count == 0)
+                return [];
+
+            // Rows are separated by more than a line height; words within one never are. Using the
+            // median word height rather than a fixed pixel count keeps this working across
+            // resolutions and upscale factors.
+            var heights = words.Select(w => w.Height).OrderBy(h => h).ToList();
+            double medianHeight = heights[heights.Count / 2];
+            double tolerance = Math.Max(1, medianHeight * 0.6);
+
+            var rows = new List<List<PlacedWord>>();
+
+            foreach (var word in words.OrderBy(w => w.Top))
+            {
+                double center = word.Top + word.Height / 2;
+                var row = rows.FirstOrDefault(r =>
+                {
+                    double rowCenter = r.Average(w => w.Top + w.Height / 2);
+                    return Math.Abs(rowCenter - center) <= tolerance;
+                });
+
+                if (row is null)
+                    rows.Add([word]);
+                else
+                    row.Add(word);
+            }
+
+            foreach (var row in rows)
+                row.Sort((a, b) => a.Left.CompareTo(b.Left));
+
+            return rows;
+        }
+
+        /// <summary>
         /// Collapses the several frames that show one feed row into a single event, timed at the
-        /// first sighting. A different opponent name starts a new event even inside the window, so
-        /// two kills in quick succession are not merged into one.
+        /// first sighting. A clearly different opponent starts a new event even inside the window,
+        /// so two kills in quick succession are not merged into one.
         /// </summary>
         private static List<Candidate> GroupIntoEvents(List<(TimeSpan Time, Role Role, string Opponent)> detections)
         {
@@ -403,15 +483,25 @@ namespace VPULSE.Backend.Media
 
             foreach (var detection in detections.OrderBy(d => d.Time))
             {
-                var previous = events.Count > 0 ? events[^1] : null;
+                // Matched against the most recent event of the same kind, not simply the last one
+                // added. The feed routinely shows a kill and a death at once, so the two interleave
+                // frame by frame; comparing only against the previous entry meant every repeat
+                // landed on the other kind and opened a new event. One kill became five.
+                int index = -1;
+                for (int i = events.Count - 1; i >= 0; i--)
+                {
+                    if (detection.Time - events[i].Time >= EventWindow)
+                        break;
 
-                bool sameEvent = previous is not null
-                    && detection.Time - previous.Time < EventWindow
-                    && previous.Role == detection.Role
-                    && LevenshteinDistance(previous.Opponent.ToLowerInvariant(), detection.Opponent.ToLowerInvariant()) <= 2;
+                    if (events[i].Role == detection.Role)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
 
-                if (sameEvent)
-                    events[^1] = previous! with { FrameCount = previous.FrameCount + 1 };
+                if (index >= 0 && !AreDifferentOpponents(events[index].Opponent, detection.Opponent))
+                    events[index] = events[index] with { FrameCount = events[index].FrameCount + 1 };
                 else
                     events.Add(new Candidate(detection.Time, detection.Role, detection.Opponent, 1));
             }

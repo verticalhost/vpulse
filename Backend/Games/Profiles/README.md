@@ -50,6 +50,17 @@ to 0.5 missed two kills out of three: a feed row stays on screen for several sec
 *legible* for the first two or three, so the usable rate is set by readability, not visibility.
 Raising it above 1 only costs scan time.
 
+## What the shipped profiles cover
+
+`battlefield-6.json` is taller than a single row on purpose: Battlefield stacks several entries and
+the top one is often under a stream overlay, so the region has to reach far enough down to catch a
+row that has scrolled. Validated against a 56-second clip — six events, every one confirmed against
+the frame it came from.
+
+Battlefield also puts a `▸` marker immediately before the player's own name, on both kill and death
+rows. It is dropped along with every other token that has no letters, so it does not disturb the
+left-to-right ordering.
+
 ## Drawing the region
 
 Include the whole feed row — the killer on the left, the victim on the right — with margin on both

@@ -526,11 +526,22 @@ function GamePanel({
 
       {getClippingMode(game.name) === 'semi-auto' && (
         <div className="bg-base-200 rounded-lg border border-base-400 p-4 text-sm">
-          <div className="font-medium mb-1">Clipping {game.name}</div>
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <span className="font-medium">Clipping {game.name}</span>
+            {/* What a scan marks, stated the same way the integrations above state theirs, so the
+                two modes can be compared on what they actually give you rather than on wording. */}
+            <span className="badge badge-sm badge-success badge-outline">Kills</span>
+            <span className="badge badge-sm badge-error badge-outline">Deaths</span>
+          </div>
           <p className="opacity-80">
             VPULSE cannot read this game while you play, so kills are found afterwards instead: open
             a recording of it, choose <span className="font-medium">Find Kills</span>, and box its
             kill feed once. Every later session of {game.name} scans with that setup.
+          </p>
+          <p className="opacity-80 mt-2">
+            Kills and deaths are told apart by where your name sits in the feed row — first means you
+            got the kill, last means you died. Rows it cannot read that way are listed as unclear and
+            left for you to decide.
           </p>
         </div>
       )}
