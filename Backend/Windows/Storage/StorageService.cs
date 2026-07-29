@@ -30,15 +30,46 @@ namespace VPULSE.Backend.Windows.Storage
 
         public static double GetCurrentFolderSizeGb()
         {
+            long currentUsageBytes = CalculateContentUsageBytes();
+            double currentUsageGb = Math.Round((double)currentUsageBytes / BYTES_PER_GB, 2);
+            return currentUsageGb;
+        }
+
+        /// <summary>
+        /// Total size of the recordings VPULSE owns.
+        ///
+        /// Only the four content subfolders are counted, never the content folder as a whole. A user
+        /// can point the content folder at a drive root, and measuring the whole tree there would
+        /// charge VPULSE for every unrelated file on the drive. Cleanup can only ever delete
+        /// sessions and buffers, so counting more than that produces an excess it cannot resolve —
+        /// and it responds by deleting every recording it has, on every launch, without ever
+        /// reaching the target. Measure what cleanup can actually act on.
+        /// </summary>
+        internal static long CalculateContentUsageBytes()
+        {
             string contentFolder = Settings.Instance.ContentFolder;
             if (string.IsNullOrEmpty(contentFolder) || !Directory.Exists(contentFolder))
             {
                 return 0;
             }
 
-            long currentUsageBytes = CalculateFolderSize(contentFolder);
-            double currentUsageGb = Math.Round((double)currentUsageBytes / BYTES_PER_GB, 2);
-            return currentUsageGb;
+            string[] contentFolders =
+            [
+                FolderNames.Sessions,
+                FolderNames.Buffers,
+                FolderNames.Clips,
+                FolderNames.Highlights,
+            ];
+
+            long total = 0;
+            foreach (string name in contentFolders)
+            {
+                string path = Path.Combine(contentFolder, name);
+                if (Directory.Exists(path))
+                    total += CalculateFolderSize(path);
+            }
+
+            return total;
         }
 
         // A drive considered too full to safely start a recording
@@ -185,7 +216,7 @@ namespace VPULSE.Backend.Windows.Storage
                 return;
             }
 
-            long currentUsageBytes = CalculateFolderSize(contentFolder);
+            long currentUsageBytes = CalculateContentUsageBytes();
             double currentUsageGB = (double)currentUsageBytes / BYTES_PER_GB;
 
             Log.Information($"Current storage usage: {currentUsageGB:F2} GB, limit: {storageLimit} GB");
