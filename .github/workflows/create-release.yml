@@ -10,7 +10,7 @@ on:
 
 jobs:
   build_and_release:
-    runs-on: windows-2025-vs2026
+    runs-on: windows-2025
     permissions:
       contents: write
     outputs:
