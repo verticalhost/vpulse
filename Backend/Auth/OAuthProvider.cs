@@ -31,16 +31,15 @@ namespace VPULSE.Backend.Auth
         public const string VPZoneName = "vpzone";
         public const string GamefolioName = "gamefolio";
 
-        // TODO(vpzone): the OpenAPI spec declares no OAuth2 flows and there is no RFC 8414 metadata
-        // document, so these paths are assumed. Confirm them, confirm the token endpoint accepts a
-        // public client (no client_secret), and register the redirect URI below.
+        // Registered at vpzone.tv/developers/oauth as a public client (OAuth 2.1 + PKCE, no secret).
+        // Note the token endpoint sits under /api/oauth, not /api/v1 like the rest of the API.
         public static readonly OAuthProvider VPZone = Configure(new OAuthProvider(
             Name: VPZoneName,
             DisplayName: "VPZONE",
             AuthorizeUrl: "https://vpzone.tv/oauth/authorize",
-            TokenUrl: "https://vpzone.tv/api/v1/oauth/token",
+            TokenUrl: "https://vpzone.tv/api/oauth/token",
             ApiBase: "https://vpzone.tv/api/v1",
-            ClientId: "",
+            ClientId: "3321677d-71c3-4022-890f-b1e73597a409",
             // /me/vpz-plus reads under profile:read, so membership needs no scope of its own.
             Scopes: "profile:read",
             CallbackPath: "/auth/vpzone/callback"));
