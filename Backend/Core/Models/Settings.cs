@@ -1089,6 +1089,14 @@ namespace VPULSE.Backend.Core.Models
                 Bookmarks.Add(bookmark);
             }
             AppState.Instance.NotifyRecordingUpdated();
+
+            // While the user is live in their own OBS, ask it to keep this moment from the scene
+            // already on air. The clip then carries their overlays and camera, and no second
+            // encoder runs. StreamerModeService rate-limits, so bursts of kills stay sane.
+            if (bookmark.Type.IncludeInHighlight() && Recorder.StreamerModeService.ShouldRideObs)
+            {
+                _ = Recorder.StreamerModeService.SaveClipAsync(Game);
+            }
         }
 
         [JsonPropertyName("duration")]

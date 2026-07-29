@@ -29,6 +29,16 @@ namespace VPULSE.Backend.Recorder
 
         public static bool IsConnected => _obs.IsConnected;
 
+        /// <summary>Cached by the watcher so callers on the recording path stay synchronous.</summary>
+        public static bool IsStreaming { get; private set; }
+
+        /// <summary>
+        /// True when the user is live in their own OBS, which is when riding it beats capturing
+        /// alongside it. Merely having OBS open is not enough: its replay buffer may be off, and
+        /// VPULSE's own capture is the better default then.
+        /// </summary>
+        public static bool ShouldRideObs => _obs.IsConnected && IsStreaming;
+
         static StreamerModeService()
         {
             _obs.ReplaySaved += path => _ = ImportAsync(path, _pendingGame);
@@ -218,6 +228,8 @@ namespace VPULSE.Backend.Recorder
                 {
                     if (!_obs.IsConnected && Probe().Ready)
                         await ConnectAsync();
+
+                    IsStreaming = _obs.IsConnected && await IsStreamingAsync();
 
                     // Republish every cycle rather than only on change. The indicator mounts after
                     // the connection push and would otherwise miss it and never be told again;
