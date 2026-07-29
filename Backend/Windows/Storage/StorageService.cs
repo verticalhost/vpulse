@@ -205,7 +205,18 @@ namespace VPULSE.Backend.Windows.Storage
         internal static long CalculateFolderSize(string folderPath)
         {
             long size = 0;
-            string[] files = Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories);
+
+            // IgnoreInaccessible, because the walk itself throws otherwise and the per-file catch
+            // below never gets a chance: a content folder set to a drive root contains
+            // System Volume Information, which Windows refuses to enumerate. That aborted the tail
+            // of highlight creation and library refreshes, reporting work that had actually
+            // succeeded as a failure.
+            var options = new EnumerationOptions
+            {
+                RecurseSubdirectories = true,
+                IgnoreInaccessible = true,
+            };
+            string[] files = Directory.GetFiles(folderPath, "*", options);
 
             foreach (string file in files)
             {
