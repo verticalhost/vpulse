@@ -11,14 +11,27 @@ implementation for a future VPZONE service where users submit a clip and get a p
 
 ## Run
 
+Two backends. **Local** (free, offline, nothing leaves the machine) via Ollama or LM Studio:
+
 ```bash
 cd tools/calibrate-game
 npm install
+ollama pull qwen2.5vl:7b        # once, ~6 GB — a vision model is required
+node calibrate.mjs "D:/clips/delta-force-match.mp4" "Delta Force" --local
+```
+
+`--local` targets Ollama (`http://localhost:11434/v1`) by default; pass a URL for LM Studio
+(`--local http://localhost:1234/v1`) and pick the model with `--model`. Validated end to end:
+on a clip with known kills, the locally generated region produced the same kills as the
+hand-calibrated profile.
+
+Or **Claude** via the Anthropic API — more reliable at tight regions, costs a few cents per run:
+
+```bash
 ANTHROPIC_API_KEY=sk-ant-... node calibrate.mjs "D:/clips/delta-force-match.mp4" "Delta Force"
 ```
 
-Auth comes from `ANTHROPIC_API_KEY` or an `ant auth login` profile — either works; nothing is
-stored in the repo.
+Auth comes from `ANTHROPIC_API_KEY` or an `ant auth login` profile; nothing is stored in the repo.
 
 Output:
 
@@ -36,6 +49,8 @@ harness) before committing the profile.
 
 | Flag | Meaning |
 |---|---|
+| `--local [url]` | Use a local vision model (Ollama default; give a URL for LM Studio or a remote box) |
+| `--model <name>` | Local model name (default `qwen2.5vl:7b`) |
 | `--frames N` | Sample N frames instead of 4, spread through the middle of the recording |
 | `--ffmpeg <path>` | ffmpeg binary (defaults to the one in `publish/`) |
 | `--mock <file.json>` | Skip the API call; read the model response from a file. For testing the pipeline without credentials |
