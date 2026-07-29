@@ -61,6 +61,14 @@ Battlefield also puts a `▸` marker immediately before the player's own name, o
 rows. It is dropped along with every other token that has no letters, so it does not disturb the
 left-to-right ordering.
 
+`delta-force.json` covers the same top-right feed, validated against a live session.
+
+**Known limitation for Delta Force:** the feed uses the same row shape for reviving a teammate as
+for killing an enemy — `LordWaffl3 ⟳ Zosazi` reads identically to a kill, and the scan reports it as
+one. The two differ only by an icon, which OCR does not see. Confirmed on a session where the player
+had no kills at all and the single reported kill was a revive. The thumbnail beside each candidate
+is what makes this obvious at a glance, and it can be unchecked before the bookmarks are written.
+
 ## Drawing the region
 
 Include the whole feed row — the killer on the left, the victim on the right — with margin on both

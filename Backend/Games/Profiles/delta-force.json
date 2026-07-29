@@ -1,0 +1,10 @@
+{
+  "gameName": "Delta Force",
+  "regionX": 0.792,
+  "regionY": 0.0648,
+  "regionWidth": 0.208,
+  "regionHeight": 0.176,
+  "playerName": "",
+  "scanFramesPerSecond": 1.0,
+  "includeDeaths": true
+}
