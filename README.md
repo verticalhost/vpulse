@@ -79,9 +79,20 @@ VPULSE is **GPLv2 licensed**.
 | Reviewers | @verticalhost |
 | Approvers | @verticalhost |
 
-VPULSE uploads clips and signs in through Segra.tv, so that data is covered by
-[Segra's Privacy Policy](https://segra.tv/privacy). Recording and highlight generation happen
-locally and send nothing.
+**Privacy**
+
+Recording, clipping and highlight generation run entirely on your machine and send nothing. VPULSE
+makes three kinds of network request, and no data leaves your PC except where listed:
+
+- **Game detection data** — downloads a public game list from `cdn.segra.tv` and the recorder
+  runtime from `segra.tv`. Anonymous, read-only, no account involved.
+- **Sign-in (optional)** — signing in with VPZONE sends you to `vpzone.tv` and stores a token on
+  your PC, encrypted for your Windows account. VPULSE reads your username and whether your VPZ+
+  membership is active. Covered by [VPZONE's privacy policy](https://vpzone.tv/privacy).
+- **Publishing (optional, not yet enabled)** — publishing a clip uploads that file to Gamefolio.
+  Nothing is uploaded unless you press the publish button.
+
+Airplane mode in Settings disables every one of these.
 
 ## Star History
 
