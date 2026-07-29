@@ -11,12 +11,9 @@ import {
   FolderOpen,
   PenLine,
   Trash2,
-  Link,
-  Check,
   Ellipsis,
   Minimize2,
   Crown,
-  ExternalLink,
   Copy,
   Bookmark,
   ScanSearch,
@@ -71,8 +68,6 @@ export default function ContentCard({
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [opened, setOpened] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -608,53 +603,10 @@ export default function ContentCard({
           <span>
             {content!.fileSize} &bull; {new Date(content!.createdAt).toLocaleDateString()}
           </span>
-          {!airplaneMode && content!.uploadId && (
-            <div className="flex absolute right-3 gap-0 pr-1">
-              <span
-                className="btn btn-ghost btn-sm btn-circle relative group hover:bg-white/10 active:bg-white/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const url = `https://segra.tv/video/${content!.uploadId}`;
-                  navigator.clipboard.writeText(url);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 1500);
-                }}
-              >
-                <label
-                  className={`swap overflow-hidden justify-center ${copied ? 'swap-active' : ''}`}
-                >
-                  <div className="swap-off">
-                    <Link size={20} />
-                  </div>
-                  <div className="swap-on">
-                    <Check size={20} />
-                  </div>
-                </label>
-              </span>
-              <span
-                className="btn btn-ghost btn-sm btn-circle hover:bg-white/10 active:bg-white/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  sendMessageToBackend('OpenInBrowser', {
-                    Url: `https://segra.tv/video/${content!.uploadId}`,
-                  });
-                  setOpened(true);
-                  setTimeout(() => setOpened(false), 1500);
-                }}
-              >
-                <label
-                  className={`swap overflow-hidden justify-center ${opened ? 'swap-active' : ''}`}
-                >
-                  <div className="swap-off">
-                    <ExternalLink size={20} />
-                  </div>
-                  <div className="swap-on">
-                    <Check size={20} />
-                  </div>
-                </label>
-              </span>
-            </div>
-          )}
+          {/* The copy-link and open-in-browser buttons that lived here pointed at segra.tv/video,
+              the upload destination VPULSE no longer has. They only appeared when a content item
+              carried an uploadId, which nothing sets any more — but a recording from before the
+              switch still does, and would have sent the user to another project's site. */}
         </div>
       </div>
     </div>

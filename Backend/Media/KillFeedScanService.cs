@@ -158,16 +158,30 @@ namespace VPULSE.Backend.Media
                 var result = await KillFeedScanner.ScanAsync(
                     filePath, playerName, region, fps, progress, cancellation.Token);
 
+                // A thumbnail per candidate, so the review list can be checked by eye rather than
+                // taken on trust. Pulled in parallel like the scan itself; a candidate whose frame
+                // cannot be read simply has none, which is not worth failing the scan over.
+                var thumbnails = new string?[result.Candidates.Count];
+                await Parallel.ForEachAsync(
+                    Enumerable.Range(0, result.Candidates.Count),
+                    new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = cancellation.Token },
+                    async (index, token) =>
+                    {
+                        thumbnails[index] = await KillFeedScanner.ExtractThumbnailAsync(
+                            filePath, result.Candidates[index].Time, token);
+                    });
+
                 await MessageService.SendFrontendMessage("KillFeedScanResult", new
                 {
                     FilePath = filePath,
                     FramesScanned = result.FramesScanned,
-                    Candidates = result.Candidates.Select(c => new
+                    Candidates = result.Candidates.Select((c, i) => new
                     {
                         Time = c.Time.ToString(@"hh\:mm\:ss\.fff"),
                         Role = c.Role.ToString(),
                         c.Opponent,
                         c.FrameCount,
+                        ThumbnailBase64 = thumbnails[i],
                     }),
                 });
 

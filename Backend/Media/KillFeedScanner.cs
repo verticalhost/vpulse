@@ -196,6 +196,38 @@ namespace VPULSE.Backend.Media
         }
 
         /// <summary>
+        /// A small JPEG of the moment a candidate was found, as a base64 data payload.
+        ///
+        /// The review list otherwise asks the user to confirm events from a timestamp and a name the
+        /// OCR may have misread. A picture of the moment is the only thing that lets them actually
+        /// check. Kept narrow — these travel over the local socket, several at a time.
+        /// </summary>
+        public static async Task<string?> ExtractThumbnailAsync(
+            string videoPath, TimeSpan time, CancellationToken cancellationToken = default)
+        {
+            string path = Path.Combine(Path.GetTempPath(), $"vpulse_thumb_{Guid.NewGuid():N}.jpg");
+
+            try
+            {
+                if (!await ExtractFrameAsync(videoPath, time, region: null, path, cancellationToken, ThumbnailWidth))
+                    return null;
+
+                return Convert.ToBase64String(await File.ReadAllBytesAsync(path, cancellationToken));
+            }
+            catch (Exception ex)
+            {
+                Log.Debug($"[KillFeedScanner] No thumbnail at {time:hh\\:mm\\:ss}: {ex.Message}");
+                return null;
+            }
+            finally
+            {
+                try { File.Delete(path); } catch { /* temp file */ }
+            }
+        }
+
+        private const int ThumbnailWidth = 240;
+
+        /// <summary>
         /// What OCR reads inside a candidate region, one entry per row, with each word's horizontal
         /// position relative to the row. The calibration screen shows this so a badly placed region
         /// is obvious immediately rather than after a full scan, and lets the user pick their own
@@ -266,15 +298,22 @@ namespace VPULSE.Backend.Media
         /// session practical.
         /// </summary>
         private static async Task<bool> ExtractFrameAsync(
-            string videoPath, TimeSpan time, Region? region, string outputPath, CancellationToken cancellationToken)
+            string videoPath,
+            TimeSpan time,
+            Region? region,
+            string outputPath,
+            CancellationToken cancellationToken,
+            int? scaleToWidth = null)
         {
             string N(double v) => v.ToString(CultureInfo.InvariantCulture);
 
-            // A null region means the whole frame, untouched — the calibration screen needs it at
-            // native size so the region the user draws maps straight onto the recording.
-            string? filter = region is null ? null :
-                $"crop=iw*{N(region.Width)}:ih*{N(region.Height)}:iw*{N(region.X)}:ih*{N(region.Y)}," +
-                $"scale=iw*{UpscaleFactor}:ih*{UpscaleFactor}:flags=lanczos";
+            // A null region means the whole frame — the calibration screen needs it at native size
+            // so the region the user draws maps straight onto the recording, while thumbnails ask
+            // for a width and get the frame scaled down to it.
+            string? filter = region is null
+                ? (scaleToWidth is null ? null : $"scale={scaleToWidth}:-2")
+                : $"crop=iw*{N(region.Width)}:ih*{N(region.Height)}:iw*{N(region.X)}:ih*{N(region.Y)}," +
+                  $"scale=iw*{UpscaleFactor}:ih*{UpscaleFactor}:flags=lanczos";
 
             var psi = new ProcessStartInfo(FFmpegService.GetFFmpegPath())
             {

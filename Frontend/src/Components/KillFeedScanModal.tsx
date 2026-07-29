@@ -19,6 +19,7 @@ interface Candidate {
   role: 'Kill' | 'Death' | 'Ambiguous';
   opponent: string;
   frameCount: number;
+  thumbnailBase64?: string | null;
 }
 
 interface Region {
@@ -479,6 +480,17 @@ export default function KillFeedScanModal({
                         checked={selected.has(index)}
                         onChange={() => toggle(index)}
                       />
+                      {/* The picture is the only way to check a candidate: the time and the name
+                          beside it both come from the same reading that may have got it wrong. */}
+                      {candidate.thumbnailBase64 ? (
+                        <img
+                          src={`data:image/jpeg;base64,${candidate.thumbnailBase64}`}
+                          alt=""
+                          className="w-24 aspect-video object-cover rounded flex-shrink-0 bg-base-100"
+                        />
+                      ) : (
+                        <div className="w-24 aspect-video rounded flex-shrink-0 bg-base-100" />
+                      )}
                       <span className="tabular-nums text-sm text-gray-400">
                         {candidate.time.substring(0, 8)}
                       </span>
