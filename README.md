@@ -53,7 +53,7 @@ disconnecting revokes the grant there rather than just forgetting it locally.
   anything it cannot read that way is listed as unclear and left for you to decide.
 - **Shareable game profiles** — a calibrated kill feed region is one JSON file, in relative
   coordinates, so it works at any resolution and on anyone's monitor. Ships with profiles for
-  PUBG and Battlefield 6; see [Backend/Games/Profiles](Backend/Games/Profiles).
+  PUBG, Battlefield 6 and Delta Force; see [Backend/Games/Profiles](Backend/Games/Profiles).
 - **Instant clipping** — save the last moments with a hotkey, without ending the session.
 - **Publish to Gamefolio** — connect your [Gamefolio](https://app.gamefolio.com) account once in
   Settings → Account, then publish any clip or highlight from its `⋯` menu and get a share link
