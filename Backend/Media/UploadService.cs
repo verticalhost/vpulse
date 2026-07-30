@@ -96,14 +96,20 @@ namespace VPULSE.Backend.Media
                     }
                 }
 
-                var fileContent = new ProgressableStreamContent(fileBytes, "application/octet-stream", ProgressHandler, cts.Token);
+                // Gamefolio rejects anything that is not a declared video type, so the part has to
+                // carry a real media type: "application/octet-stream" is refused outright.
+                var fileContent = new ProgressableStreamContent(fileBytes, VideoMediaType(fileName), ProgressHandler, cts.Token);
                 formData.Add(fileContent, "file", fileName);
 
                 // Gamefolio requires a title; the rest is optional. Names follow its clip API
                 // rather than the field names the frontend still uses internally.
                 formData.Add(new StringContent(string.IsNullOrWhiteSpace(title) ? fileNameWithoutExtension : title), "title");
                 AddOptionalContent(formData, message, "Description", "description");
-                AddOptionalContent(formData, message, "Game", "gameId");
+                // gameId is an identifier, not a label: sending the display name
+                // ("PUBG: BATTLEGROUNDS") makes the endpoint answer 500. The frontend already
+                // carries the game's IGDB id alongside the name, so that is what goes out; a
+                // recording whose game was never resolved simply uploads untagged.
+                AddOptionalContent(formData, message, "IgdbId", "gameId");
 
                 await MessageService.SendFrontendMessage("UploadProgress", new
                 {
@@ -129,7 +135,17 @@ namespace VPULSE.Backend.Media
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
                 var response = await _httpClient.SendAsync(request, cts.Token);
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    // EnsureSuccessStatusCode throws away the body, which is where the endpoint
+                    // says what it actually objected to. Without it a rejected field is
+                    // indistinguishable from an outage.
+                    string error = await response.Content.ReadAsStringAsync(cts.Token);
+                    Log.Error("Gamefolio rejected the upload ({Status}): {Body}",
+                        (int)response.StatusCode, Truncate(error, 600));
+                    throw new HttpRequestException(
+                        $"Gamefolio answered {(int)response.StatusCode}. {Truncate(error, 300)}");
+                }
 
                 lock (_uploadLock)
                 {
@@ -316,6 +332,25 @@ namespace VPULSE.Backend.Media
                 formData.Add(new StringContent(value), formField);
             }
         }
+
+        /// <summary>
+        /// The subset Gamefolio accepts. Anything else falls back to mp4, which is what VPULSE
+        /// records; sending a wrong-but-plausible video type gets a clear rejection, while
+        /// sending none at all gets the opaque 500 this replaced.
+        /// </summary>
+        private static string VideoMediaType(string fileName) =>
+            Path.GetExtension(fileName).ToLowerInvariant() switch
+            {
+                ".webm" => "video/webm",
+                ".mov" => "video/quicktime",
+                ".avi" => "video/x-msvideo",
+                _ => "video/mp4",
+            };
+
+        private static string Truncate(string value, int max) =>
+            string.IsNullOrEmpty(value) ? "(empty body)"
+            : value.Length <= max ? value
+            : value[..max] + "…";
 
         private static async Task FailUpload(string title, string fileName, string reason)
         {

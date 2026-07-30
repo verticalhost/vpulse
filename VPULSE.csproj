@@ -178,12 +178,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="wwwroot\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <!-- Kill feed profiles shipped with the app. Flattened next to the executable so the runtime
          reads them from one folder, and so a user can drop a profile someone sent them straight in
          without rebuilding. Their own calibrations live in %APPDATA% and take priority. -->
@@ -208,6 +202,19 @@
     <Copy
       SourceFiles="@(FrontendDistFiles)"
       DestinationFiles="@(FrontendDistFiles->'Resources\wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+    <!-- The served copy. PhotinoServer.CreateStaticFileServer reads wwwroot next to the
+         executable, which the Content item below fills from this folder — so refreshing only
+         Resources\wwwroot leaves the running app on whatever bundle was there before. That is
+         not hypothetical: it silently shipped a stale UI twice, and hashed asset names make it
+         look like a caching problem rather than a build one. -->
+    <ItemGroup>
+      <ServedFrontendFiles Include="wwwroot\**\*" Exclude="wwwroot\.gitkeep" />
+    </ItemGroup>
+    <Delete Files="@(ServedFrontendFiles)" />
+    <Copy
+      SourceFiles="@(FrontendDistFiles)"
+      DestinationFiles="@(FrontendDistFiles->'wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
   <Target
@@ -216,6 +223,20 @@
     DependsOnTargets="BuildFrontendAssets">
     <ItemGroup>
       <EmbeddedResource Include="Resources\wwwroot\**\*" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Collected here rather than in a static ItemGroup: those are evaluated before any target
+       runs, so a plain <Content Include="wwwroot\**"/> would only ever see the bundle from the
+       previous build. AssignTargetPaths still runs before files are copied to the output. -->
+  <Target
+    Name="IncludeServedFrontendAssets"
+    BeforeTargets="AssignTargetPaths"
+    DependsOnTargets="BuildFrontendAssets">
+    <ItemGroup>
+      <Content Include="wwwroot\**\*">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
   </Target>
 

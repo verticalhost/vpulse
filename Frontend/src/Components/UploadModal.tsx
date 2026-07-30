@@ -2,13 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import { Content } from '../Models/types';
 import { useSettings, useSettingsUpdater } from '../Context/SettingsContext';
 import { useAuth } from '../Hooks/useAuth.tsx';
-import { Upload, Globe, EyeOff } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import Button from './Button';
-import DropdownSelect from './DropdownSelect';
 
 interface UploadModalProps {
   video: Content;
-  onUpload: (title: string, description: string, visibility: 'Public' | 'Unlisted') => void;
+  onUpload: (title: string, description: string) => void;
   onClose: () => void;
 }
 
@@ -18,15 +17,6 @@ export default function UploadModal({ video, onUpload, onClose }: UploadModalPro
   const { gamefolio } = useAuth();
   const [title, setTitle] = useState(video.title || '');
   const [description, setDescription] = useState('');
-  const [visibility, setVisibility] = useState<'Public' | 'Unlisted'>(() =>
-    localStorage.getItem('uploadVisibility') === 'Unlisted' ? 'Unlisted' : 'Public',
-  );
-
-  const handleVisibilityChange = (value: string) => {
-    const next = value === 'Unlisted' ? 'Unlisted' : 'Public';
-    setVisibility(next);
-    localStorage.setItem('uploadVisibility', next);
-  };
   const [titleError, setTitleError] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,7 +38,7 @@ export default function UploadModal({ video, onUpload, onClose }: UploadModalPro
       return;
     }
     setTitleError(false);
-    onUpload(title, description, visibility);
+    onUpload(title, description);
     onClose();
   };
 
@@ -108,36 +98,9 @@ export default function UploadModal({ video, onUpload, onClose }: UploadModalPro
             />
           </div>
 
-          <div className="form-control w-full mt-4">
-            <label className="label">
-              <span className="label-text text-base-content">Visibility</span>
-            </label>
-            <DropdownSelect
-              items={[
-                {
-                  value: 'Public',
-                  label: (
-                    <span className="flex items-center gap-2">
-                      <Globe size={16} />
-                      Public
-                    </span>
-                  ),
-                },
-                {
-                  value: 'Unlisted',
-                  label: (
-                    <span className="flex items-center gap-2">
-                      <EyeOff size={16} />
-                      Unlisted
-                    </span>
-                  ),
-                },
-              ]}
-              value={visibility}
-              onChange={handleVisibilityChange}
-              align="start"
-            />
-          </div>
+          {/* No visibility control: Gamefolio's POST /clips takes file, title, description,
+              gameId, tags, videoType, ageRestricted, trimStart and trimEnd — there is no
+              per-clip visibility, so a selector here could only ever mislead. */}
 
           <div className="form-control mt-4">
             <label className="label cursor-pointer justify-start gap-2">

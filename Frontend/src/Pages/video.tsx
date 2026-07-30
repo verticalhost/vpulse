@@ -1500,13 +1500,12 @@ export default function VideoComponent({ video }: { video: Content }) {
         key={`${Math.random()}`}
         video={video}
         onClose={closeModal}
-        onUpload={(title, description, visibility) => {
+        onUpload={(title, description) => {
           const parameters = {
             FilePath: video.filePath,
             Game: video.game,
             Title: title,
             Description: description,
-            Visibility: visibility,
             IgdbId: video.igdbId?.toString(),
           };
 

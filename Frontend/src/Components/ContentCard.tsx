@@ -260,13 +260,12 @@ export default function ContentCard({
         key={`${Math.random()}`}
         video={content!}
         onClose={closeModal}
-        onUpload={(title, description, visibility) => {
+        onUpload={(title, description) => {
           const parameters: any = {
             FilePath: content!.filePath,
             Game: content?.game,
             Title: title,
             Description: description,
-            Visibility: visibility,
             IgdbId: content?.igdbId?.toString(),
           };
 

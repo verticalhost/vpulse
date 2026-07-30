@@ -33,6 +33,13 @@ clips itself and another does not.
 
 ![Recording settings](docs/screenshots/settings-recording.png)
 
+### 📤 Publish without leaving the app
+
+Connect Gamefolio once, then any clip publishes from its `⋯` menu with a title and description, and
+the share link comes back into the app. VPULSE signs in as a public OAuth client: it holds no
+client secret and never sees your password — you approve it on Gamefolio's own page, and
+disconnecting revokes the grant there rather than just forgetting it locally.
+
 ---
 
 ## ✨ Features
@@ -48,6 +55,12 @@ clips itself and another does not.
   coordinates, so it works at any resolution and on anyone's monitor. Ships with profiles for
   PUBG and Battlefield 6; see [Backend/Games/Profiles](Backend/Games/Profiles).
 - **Instant clipping** — save the last moments with a hotkey, without ending the session.
+- **Publish to Gamefolio** — connect your [Gamefolio](https://app.gamefolio.com) account once in
+  Settings → Account, then publish any clip or highlight from its `⋯` menu and get a share link
+  back. Sign-in is OAuth 2.1 with PKCE as a public client, so no secret ships in the binary and no
+  password is ever typed into VPULSE; disconnecting revokes the grant server-side, not just
+  locally. Free Gamefolio accounts cap clips at 100 MB — the built-in **Compress** action is the
+  way past that.
 - **AI highlights** — assembles a reel from your bookmarked moments. Runs entirely on your machine.
 - **Streamer mode** — if OBS is already streaming, VPULSE records through it instead of capturing
   alongside it, so clips keep your overlays and facecam and cost no second encode.
@@ -132,8 +145,10 @@ kinds of network request, and no data leaves your PC except where listed:
 - **Sign-in (optional)** — signing in with VPZONE sends you to `vpzone.tv` and stores a token on
   your PC, encrypted for your Windows account. VPULSE reads your username and whether your VPZ+
   membership is active. Covered by [VPZONE's privacy policy](https://vpzone.tv/privacy).
-- **Publishing (optional, not yet enabled)** — publishing a clip uploads that file to Gamefolio.
-  Nothing is uploaded unless you press the publish button.
+- **Publishing (optional)** — connecting Gamefolio sends you to `app.gamefolio.com` and stores a
+  token on your PC, encrypted for your Windows account. Publishing uploads that one clip, with the
+  title and description you type. Nothing is uploaded unless you press Upload, and signing out
+  revokes the token at Gamefolio rather than only deleting the local copy.
 
 Airplane mode in Settings disables every one of these.
 
